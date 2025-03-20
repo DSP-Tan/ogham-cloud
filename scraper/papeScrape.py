@@ -60,20 +60,15 @@ for menu, selection in dropDowns:
     select   = Select(dropdown)
     select.select_by_visible_text(selection) ; sleep(3)
 
+for pape in [1,2]:
+    word = { 1:"One", 2:"Two"}[pape]
+    paper = driver.find_element(By.XPATH, f"//tr[td[contains(text(), 'Paper {word}') and contains(text(), '/ Higher Level (EV)')]]/td[2]//a")
+    paperLink = paper.get_attribute("href")
+    driver.get(paperLink); sleep(3)
+    close_adobe(); sleep(3)
 
-paper1 = driver.find_element(By.XPATH, "//tr[td[contains(text(), 'Paper One') and contains(text(), '/ Higher Level (EV)')]]/td[2]//a")
-paper1Link = paper1.get_attribute("href")
-driver.get(paper1Link); sleep(3)
-close_adobe(); sleep(3)
-
-paper2 = driver.find_element(By.XPATH, "//tr[td[contains(text(), 'Paper Two') and contains(text(), '/ Higher Level (EV)')]]/td[2]//a")
-paper2Link = paper2.get_attribute("href")
-driver.get(paper2Link); sleep(3)
-close_adobe(); sleep(3)
-
-for paper in [1,2]:
-    for j in [i for i in os.listdir(r"C:\Users\DELL\Downloads") if f"LC003ALP{paper}" in i]:
-        file_dest = dest + f"\\{j.rstrip(".pdf")}_{year}_{paper}.pdf"
+    for j in [i for i in os.listdir(r"C:\Users\DELL\Downloads") if f"LC003ALP{pape}" in i]:
+        file_dest = dest + f"\\{j.rstrip('.pdf')}_{year}_{pape}.pdf"
         os.rename(r'C:\Users\DELL\Downloads\\' + j, file_dest)
 
 driver.close()
