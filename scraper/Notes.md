@@ -21,3 +21,12 @@ maths papers. In 2015 there is just project.
 
 These differences must be examined to see what it means. Was project maths introduced, trialled, and then dropped?
 Or was it maintained forever, and referred to as simply maths since it's official adoption.
+
+# Archive function
+
+At the moment we are storing the files locally. But we will want to have them on google cloud storage for convenience
+and safety and remote accessibility. We can have an archive function which takes a variable set to cloud or local 
+which will save them to the cloud or save them locally.
+
+We will also want a function which check what papers are already downloaded, and if they are already downloaded to
+not download them again. 
