@@ -3,27 +3,19 @@ import undetected_chromedriver as uc
 from   selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui  import Select
 from time import sleep
-
-import psutil
-
-def close_adobe():
-    # Loop through all running processes and kill Adobe Reader (Acrobat)
-    for proc in psutil.process_iter(['pid', 'name']):
-        if 'Acrobat' in proc.info['name']:
-            proc.kill()
-
+from utils import close_adobe, moveFreshFiles
 
 if len(sys.argv) < 2:
     print("Provide year or year range:")
     print(f"Example use:\npython {sys.argv[0]} 2014 2016")
     sys.exit(1)
 
-#year = "2012"
 year = sys.argv[1]
-exam = "Leaving Certificate"
+url     = "https://www.examinations.ie"
+exam    = "Leaving Certificate"
 subject = "Mathematics"
-
-
+dl_dir  = r'C:\Users\DELL\Downloads\\'
+dest    = rf"C:\Users\DELL\Desktop\Exams\maths_h"
 
 options = uc.ChromeOptions()
 options.add_experimental_option("prefs", {
@@ -37,14 +29,10 @@ options.add_argument("--disable-blink-features=AutomationControlled")
 driver = uc.Chrome(options=options)
 
 
-url = "https://www.examinations.ie"
-dest= rf"C:\Users\DELL\Desktop\Exams\maths_h"
 
 
 driver.get(url)                                                                 ; sleep(20)
 driver.get(url+"/exammaterialarchive")                                          ; sleep(5)
-
-
 driver.find_element(By.ID, "MaterialArchive__noTable__cbv__AgreeCheck").click() ; sleep(3)
 
 dropDowns = [("MaterialArchive__noTable__sbv__ViewType","Exam Papers" ), 
@@ -67,9 +55,10 @@ for pape in [1,2]:
     driver.get(paperLink); sleep(3)
     close_adobe(); sleep(3)
 
-    for j in [i for i in os.listdir(r"C:\Users\DELL\Downloads") if f"LC003ALP{pape}" in i]:
-        file_dest = dest + f"\\{j.rstrip('.pdf')}_{year}_{pape}.pdf"
-        os.rename(r'C:\Users\DELL\Downloads\\' + j, file_dest)
+    moveFreshFiles(year, dl_dir, dest)
+    #for j in [i for i in os.listdir(r"C:\Users\DELL\Downloads") if f"LC003ALP{pape}" in i]:
+    #    file_dest = dest + f"\\{j.rstrip('.pdf')}_{year}_{pape}.pdf"
+    #    os.rename(r'C:\Users\DELL\Downloads\\' + j, file_dest)
 
 driver.close()
 sleep(4)
