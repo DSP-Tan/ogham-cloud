@@ -7,15 +7,15 @@ def close_adobe():
 
 
 import os 
-def moveFreshPapers(year: str , dl_dir: str, dest: str):
-    pdfs =       [i for i in os.listdir(dl_dir) if i.endswith(".pdf")]
-    LC_pdfs =    [i for i in pdfs if ("LC" in i) and ("EV" in i)]
-    latestPaper = sorted(LC_pdfs, key = lambda x: os.path.getctime(dl_dir+x),reverse=True )[0]   
+def moveFreshPapers(year: str , dl_dir: str, fname:str, dest: str):
+    #pdfs =       [i for i in os.listdir(dl_dir) if i.endswith(".pdf")]
+    #LC_pdfs =    [i for i in pdfs if ("LC" in i) and ("EV" in i)]
+    #latestPaper = sorted(LC_pdfs, key = lambda x: os.path.getctime(dl_dir+x),reverse=True )[0]   
 
     os.makedirs(dest,exist_ok=True)
-    file_dest = dest + f"\\{latestPaper.rstrip('.pdf')}_{year}.pdf"
+    file_dest = dest + f"\\{fname.rstrip('.pdf')}_{year}.pdf"
     if os.path.exists(file_dest):
-        os.remove(dl_dir + latestPaper)
+        os.remove(dl_dir + fname)
     else:
-        os.rename(dl_dir + latestPaper, file_dest)
+        os.rename(dl_dir + fname, file_dest)
     return 0
