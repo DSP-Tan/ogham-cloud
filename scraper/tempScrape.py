@@ -18,7 +18,7 @@ def find_papers(driver):
 
         papers.append((fname, paper_desc,paperLink) )
 
-        print(paper_desc)
+        print(f"{paper_desc:50} - {fname:25}")
     return papers
 
 
@@ -38,11 +38,10 @@ if __name__=="__main__":
     url     = "https://www.examinations.ie"
     exam    = "Leaving Certificate"
     dl_dir  = r'C:\Users\DELL\Downloads\\'
-    dest    = rf"C:\Users\DELL\Desktop\Exams\{subject.lower().replace(' ','_')}_h"
     
     options = uc.ChromeOptions()
     options.add_experimental_option("prefs", {
-        "download.default_directory": r"C:\Users\DELL\Desktop",  
+        "download.default_directory": dl_dir,  
         "download.prompt_for_download": False,  
         "plugins.always_open_pdf_externally": True,  
     })
@@ -52,9 +51,9 @@ if __name__=="__main__":
     driver = uc.Chrome(options=options)
     
     print(f"Get {url}")
-    driver.get(url)                                                                 ; sleep(20)
+    driver.get(url)                                                                 ; sleep(19)
     driver.get(url+"/exammaterialarchive")                                          ; sleep(5)
-    driver.find_element(By.ID, "MaterialArchive__noTable__cbv__AgreeCheck").click() ; sleep(3)
+    driver.find_element(By.ID, "MaterialArchive__noTable__cbv__AgreeCheck").click() ; sleep(5)
     
     for year in range(int(year1), int(year2)+1):
         dropDowns = [("MaterialArchive__noTable__sbv__ViewType","Exam Papers" ), 
@@ -71,37 +70,34 @@ if __name__=="__main__":
             select.select_by_visible_text(selection) ; sleep(3)
         
         papers= find_papers(driver)
-        #transTab = str.maketrans({" ":"_","/":"_", ",":"_", "(":"", ")":""})
-        #cleanName = paper_desc.lower().translate( transTab )
-
-        dls = [paper for paper in papers if "Higher Level" in paper[1] and "EV" in paper[1] ]
-
+        # Download all papers of all levels for this subject for this year. Organise and log.
         for fname, paperDesc, paperLink in papers:
-            if "Higher Level" in paperDesc and "EV" in paperDesc:
-                print(f"Downloading: {paperDesc} - {fname}")
+            # Let's just ignore orals for now
+            if ".mp3" in fname:
+                continue
+                
+            level = fname[5:7] 
+            levels = { "AL":"Higher", "GL":"Ordinary", "CL":"Common","BL":"Foundation", "ZL":"Sound file"}
+            dest   = rf"C:\Users\DELL\Desktop\Exams\{subject.lower().replace(' ','_')}\{level}"
+            file_dest = dest + f"\\{fname.rstrip('.pdf')}_{year}.pdf"
+            uri= "N/A"
+
+            # Download only if If you don't already have the file in the downloads folder or the destination folder
+            if not ( os.path.exists(dl_dir + fname) or os.path.exists(file_dest) ) :
+                print(f"Downloading: {paperDesc:35} - {fname:25} to {file_dest}")
                 driver.get(paperLink); sleep(3)
                 close_adobe(); sleep(3)
-                moveFreshPapers(year, dl_dir, dest)
-        # To Do:
-        # - Now you have the actual filenames that will be downloaded to the downloads folder
-        # - You can ship them all off at once now to wherever you want.
-        # - We can also make sure that these are not already in the downloads folder, or if they 
-        #   are, we can just not download them.
-        # - You just need to decide on a naming and storage strategy now. This can be used to 
-        #   and test any paper.
+                # Write to download ledger
+                with open(rf"C:\Users\DELL\Desktop\Exams\download_table.txt", "a") as file:
+                    file.write(f"{subject},{level},{year},{paperDesc},{fname}, {paperLink}, {uri}, {file_dest}\n")
 
-        #rows = driver.find_elements(By.XPATH, "//tr[td[@class='materialbody']]")
-        #for row in rows:
-        #    paper_name= row.find_element(By.XPATH, "./td[1]").text
-        #    print(paper_name)
-        #    link_element = row.find_element(By.XPATH, "./td[2]/a")  
-        #    paperLink = link_element.get_attribute("href")  
-        #    if "Higher Level (EV)" in paper_name:
-        #        cleanName = paper_name.lower().translate( {" ":"_","/":"_", ",":"_", "(":"", ")":""} )
-        #        print(f"Downloading {cleanName}")
-        #        #driver.get(paperLink); sleep(3)
-        #        close_adobe(); sleep(3)
-        #        moveFreshPapers(year, dl_dir, dest)
+            # Organise, rename, upload downloaded files
+            os.makedirs(dest,exist_ok=True)
+            if os.path.exists(file_dest) and os.path.exists(dl_dir+fname):
+                os.remove(dl_dir + fname)
+            elif os.path.exists(dl_dir+fname) and not os.path.exists(file_dest):
+                os.rename(dl_dir + fname, file_dest)
+
     
     driver.close()
     sleep(4)
