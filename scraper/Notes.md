@@ -30,3 +30,10 @@ which will save them to the cloud or save them locally.
 
 We will also want a function which check what papers are already downloaded, and if they are already downloaded to
 not download them again. 
+
+# Error handling and waiting
+
+With Selenium it seems it is very important to wait for the pages to load before you try to find a given
+element. I have implemented this with just sleeps, but there are selenium native ways of doing it that
+must be more appropriate. In addition to that, if we put our find_elements inside a while loop with a try
+except, we can perhaps keep trying to get the element until we find it or a certain number of tries is exceeded.
