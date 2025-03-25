@@ -31,6 +31,10 @@ which will save them to the cloud or save them locally.
 We will also want a function which check what papers are already downloaded, and if they are already downloaded to
 not download them again. 
 
+We will also want a syncing function, that syncs local with gcs, or gcs with local. Or both ways. Which does not 
+delete but just makes sure that all if a file is in one place it is also in another; and which updates the download
+ledger with the addressses.
+
 # Error handling and waiting
 
 With Selenium it seems it is very important to wait for the pages to load before you try to find a given
