@@ -118,4 +118,84 @@ extracted and can be used to stop reading from the pdf.
 
 The final page is just the credits and I suppose we don't want it.
 
-# Investigating dictionary output
+# Using Page.get_text("dict") with sorting
+
+## Intro page 1
+
+- No Bullet points
+
+- There is no vertical space between any of the sentences, but the sentences appear all in the correct order.
+
+
+## Section I Pages 2 to 7
+
+### Page 2 - Text 1
+
+- Page footers printed first
+
+- Heading of article, inside pink article box, appears after the article body 
+
+- Many spaces printed when going from one column to another. Image is here. We have left column => right column: image => right column text
+  - Dual column paragraph is split up.
+
+
+### Page 3 - Text 1 - Continued
+
+- Pager footer appears first in extracted text.
+
+- Footer to article text appears next (even though it should be below the article text)
+
+- The questions A and B appear before the article text. 
+
+- Extra newlines appear in the text of the questions A and B. Question notations (i), (ii) appear a line before the questions
+  they annotate, rather than on the same line.
+
+- In the article text, an empty newline between two pargraphs is missing.
+  - This could be detected by the fact that the line preceding the new paragraph ends early.
+  - In addition, this last shorter line appears to have lots of white spaces appended to it.
+
+- Dual column pargraph split up. Image at start of column 2.
+
+### Page 4 - Text 2
+
+- The footer of the whole page is again at the top.
+
+- Headers of the article text are correctly before article body.
+
+- The article text is all correctly separated into its paragraphs. 
+
+
+
+### Page 5 - Text 2 - Continued
+
+- Many extra newlines brought in, especially in questions.
+
+
+### Page 6 - Text 3 - Just article and header
+
+
+- A column ends mid paragraph, the continuation of this paragraph in the next column is given with
+  a newline, unlike pypdf, no space before the first word in the extracted text. 
+
+### Page 7
+
+- Extra newlines everywhere in questions text.
+
+- **There is a serious issue on the second paragraph. Here half way through the paragraph the text from the column to the right appears. This occurs at "It was 
+undeniably romantic" : this sentence is cut in two and the next paragraph is pasted in.**
+  - Note the place where the break in the order occurs "It was" is followed by two
+    spaces. It seems double spaces that do not occur after a full stop are often an indication of an issue. Double spaces or single spaces where there should not be spaces. 
+  - Also note that in this case the image in the second column is encroaching in the first column. This is no doubt what causes the mix up.
+
+
+## Section II: Page 8 
+
+No spaces are inserted into words. Improvement over pypdf.
+  
+
+## No exam material: pages 9 to 12
+
+These from 9 to 11 we have "There is no examination material on this page". This is correclty 
+extracted and can be used to stop reading from the pdf.
+
+The final page is just the credits and I suppose we don't want it.

@@ -1,37 +1,9 @@
+import sys
 import fitz
 from fitz import Rect
 from itertools import takewhile
 from itertools import dropwhile
-import os, sys
-
-def get_block_text(block_dict: dict ):
-    '''
-    For a given block dictionary element, as output by Page.get_text("dict")["blocks"], this 
-    function will return the text of all the lines, joined by a "\n", and with the spans on 
-    each line joined with a space. 
-    
-    The result is one string with newline separtaed lines and space
-    separated spans.
-    '''
-    block_lines = block_dict["lines"]
-    line_texts = [" ".join([ span["text"] for span in line["spans"] ]) for line in block_lines ]
-    block_text="\n".join( [ i for i in line_texts if not i.isspace() ])
-    return block_text
-
-
-def get_block_table(blocks: dict):
-    '''
-    This function outputs a string which will list all the blocks in the page along with their coordinates, their
-    type, and the first word if it's a text block.
-    '''
-    table=[f"{'x0':8} {'x1':8} {'y0':8} {'y1':8} {'dx':8} {'dy':8} {'type':5} {'number':7} {'first_word':10}", "--"*40]
-    for block in blocks:
-        type = "img" if block["type"] else "txt" 
-        x0, y0, x1, y1 = block['bbox']
-        beginning=get_block_text(block)[:11] if type =="txt" else "--"
-        line=f"{x0:<8.2f} {x1:<8.2f} {y0:<8.2f} {y1:<8.2f} {x1-x0:<8.2f} {y1-y0:<8.2f} {type:5} {block['number']:<7} {beginning:<10}"
-        table.append(line)
-    return "\n".join(table)
+from utils import draw_rectangle_on_page, get_block_text, get_block_table
 
     
 def get_pink_boundary(drawings, pink_fill):
@@ -42,6 +14,7 @@ def get_pink_boundary(drawings, pink_fill):
     :param pink_fill: tuple specifying pink colour. (1.0, 0.8980000019073486, 0.9490000009536743) for 2024 P1
     :return: fitz.Rect of pink boundary or None
     """
+    # To Do: 
     # Only look at pink fill objects which are rectangles
     pinks = [d for d in drawings if d["type"] == "f" and d["fill"]==pink_fill ]
 
@@ -109,79 +82,77 @@ def sort_dual_column_blocks(blocks: dict):
     return col_ordered
 
 
+def parse_page(page, king_pink=None):
+    page_dict  = page.get_text("dict",sort=True)
+    
+    page_width  = page_dict["width"]   # This is a document wide thing doesn't need to be per page.
+    blocks      = page_dict["blocks"]
+    
+    print(f"There are {len(blocks)} blocks on this page")
+    print(f"page_width/2 = {page_width/2}")
+
+    print("Here all all non-empty blocks, resorted on x0 and then y0:")
+    non_empty_blocks = [ block for block in blocks if not isEmptyBlock(block) ]
+    x_sorted_blocks  = sorted(non_empty_blocks, key = lambda x: x["bbox"][0])
+    sorted_blocks    = sorted(x_sorted_blocks,  key = lambda x: x["bbox"][1])
+    table_non_empty  = get_block_table(sorted_blocks)
+
+    img_txt = "--"*40+"\n"+"Image"+"\n"+"--"*40
+    # If there is no enclosing pink box, then there is no dual column 
+    if not king_pink:
+        txt_img_blocks = [get_block_text(block) if block["type"]==0 else img_txt for block in sorted_blocks ]
+        return "\n".join(txt_img_blocks)
+        
+
+    dual_col_blocks   = identify_dual_column(sorted_blocks, page_width, king_pink)
+    sorted_duals      = sort_dual_column_blocks(dual_col_blocks)
+
+    print("Here are sorted dual-column blocks:\n")
+    sorted_cols_table = get_block_table(sorted_duals)
+
+    first_col = dual_col_blocks[0 ]["number"]
+    last_col  = dual_col_blocks[-1]["number"]
+
+    blocks_before = list(takewhile(lambda block: block["number"] != first_col, sorted_blocks))
+    blocks_after  = list(dropwhile(lambda block: block["number"] != last_col,  sorted_blocks))[1:]
+    
+    final_blocks = blocks_before + sorted_duals + blocks_after
+    print("Here are the before blocks:\n")
+    before_table = get_block_table(blocks_before)
+
+    print("Here are the final blocks:\n")
+    final_table = get_block_table(final_blocks)
+    
+    txt_img_blocks = [get_block_text(block) if block["type"]==0 else img_txt for block in final_blocks ]
+    page_text = "\n".join(txt_img_blocks)
+        
+    return page_text
 
 if __name__=="__main__":
     # This is LC, english, higher level, Paper 1, English Version,  2024
-    pdf = "LC002ALP100EV_2024.pdf" 
+    pdf = "test_pdfs/LC002ALP100EV_2024.pdf" 
     
     doc = fitz.open(pdf)
     
     # There should be 12 pages in our test file here.
     print(f"There are {len(doc)} pages")
     
-    # We will look at page 7 as this is the only one which poses ordering problems
-    n_page=7
-    page = doc[n_page-1]
+    for n_page, page in enumerate(doc):
+        if n_page !=1:
+            continue
+        print(f"Page {n_page+1}\n")
+        print(f"--"*20)
+        page_draws = page.get_drawings()
+        pink_fill = (1.0, 0.8980000019073486, 0.9490000009536743) #page_draws[0]["fill"]
+        king_pink = get_pink_boundary(page_draws,pink_fill)
+        if king_pink:
+            draw_rectangle_on_page(pdf, f"PyMuSortedPDF/bound_box_page_{n_page+1}.pdf",n_page,  king_pink)
 
-    page_dict  = page.get_text("dict",sort=True)
-    page_draws = page.get_drawings()
-    
-    page_width  = page_dict["width"]
-    page_height = page_dict["height"]
-    blocks      = page_dict["blocks"]
-    
-    print(f"There are {len(blocks)} blocks in page {n_page}")
+        page_text = parse_page(page, king_pink)
 
-    print("Here all all the blocks:")
-    table_raw=get_block_table(blocks)
-    print(table_raw,"\n"*3)
-
-    print("Here all all non-empty blocks:")
-    non_empty_blocks = [ block for block in blocks if not isEmptyBlock(block) ]
-    table_non_empty=get_block_table(non_empty_blocks)
-    print(table_non_empty,"\n"*3)
-
-    #pink_fill = (1.0, 0.8980000019073486, 0.9490000009536743)
-    pink_fill = page_draws[0]["fill"]
-    king_pink = get_pink_boundary(page_draws,pink_fill)
-
-    if not king_pink:
-        for block in non_empty_blocks:
-            block_text = get_block_text(block)
-            print(block_text,"\n")
-        sys.exit(1)
-        
-
-    dual_col_blocks   = identify_dual_column(blocks, page_width, king_pink)
-    table_dual_blocks = get_block_table(dual_col_blocks)
-    print("Here are the dual-column blocks:\n",table_dual_blocks,"\n"*3)
-
-    sorted_duals      = sort_dual_column_blocks(dual_col_blocks)
-    sorted_cols_table = get_block_table(sorted_duals)
-    print("Here are sorted dual-column blocks:\n",sorted_cols_table,'\n'*3)
-
-    first_col = dual_col_blocks[0]["number"]
-    last_col  = dual_col_blocks[-1]["number"]
-
-    blocks_before = list(takewhile(lambda block: block["number"] != first_col, non_empty_blocks))
-    blocks_after  = list(dropwhile(lambda block: block["number"] != last_col,  non_empty_blocks))[1:]
-    
-    
-    final_blocks = blocks_before + sorted_duals + blocks_after
-
-    for block in final_blocks:
-        if block["type"]!=1:
-            block_text = get_block_text(block)
-            print(block_text,"\n")
-        else:
-            print("--"*40)
-            print("Image")
-            print("--"*40)
-        
-
-
+        with open(f"PyMuSortedPDF/MuPdfPage{n_page+1}.txt", "w") as o:
+            o.write(page_text)
 
         
     
-
 
