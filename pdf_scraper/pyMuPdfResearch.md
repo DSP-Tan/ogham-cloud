@@ -131,30 +131,20 @@ The final page is just the credits and I suppose we don't want it.
 
 ### Page 2 - Text 1
 
-- Page footers printed first
+- All in correct order. 
 
-- Heading of article, inside pink article box, appears after the article body 
-
-- Many spaces printed when going from one column to another. Image is here. We have left column => right column: image => right column text
-  - Dual column paragraph is split up.
+- Image is not appearing in exactly correct position.
 
 
 ### Page 3 - Text 1 - Continued
 
-- Pager footer appears first in extracted text.
-
-- Footer to article text appears next (even though it should be below the article text)
-
-- The questions A and B appear before the article text. 
 
 - Extra newlines appear in the text of the questions A and B. Question notations (i), (ii) appear a line before the questions
-  they annotate, rather than on the same line.
+  they annotate, rather than on the same line. The number of marks (15) appears after.
 
 - In the article text, an empty newline between two pargraphs is missing.
   - This could be detected by the fact that the line preceding the new paragraph ends early.
-  - In addition, this last shorter line appears to have lots of white spaces appended to it.
-
-- Dual column pargraph split up. Image at start of column 2.
+  - In addition, this last shorter line appears to have lots of **white spaces appended to it**.
 
 ### Page 4 - Text 2
 
@@ -199,3 +189,61 @@ These from 9 to 11 we have "There is no examination material on this page". This
 extracted and can be used to stop reading from the pdf.
 
 The final page is just the credits and I suppose we don't want it.
+
+
+# Note on bboxes
+
+The bounding box of a text block is where that text block is created. People can create a text block and then 
+do ten spaces, giving the impression that a given bit of text starts up much higher than it actually does.
+
+Therefore, when ordering text, it should be ordered in accordance with the appearance of the first non-empty
+line, which can be aquired here: 
+
+non_empty_blocks[3]["lines"][5]['spans'][0]["bbox"]
+
+print(table_non_empty)
+x0       x1       y0       y1       dx       dy       type  number  first_word
+--------------------------------------------------------------------------------
+42.54    552.81   42.54    63.64    510.27   21.10    txt   1       SECTION I  
+52.80    515.75   91.12    136.50   462.95   45.37    txt   6       TEXT 1 – FA
+353.52   477.84   147.60   321.54   124.32   173.94   img   5       --        
+47.94    278.85   81.24    767.04   230.91   685.80   txt   2       Parents – a
+288.96   544.23   79.37    779.28   255.27   699.91   txt   3       1953.  The 
+42.54    555.20   795.94   819.10   512.66   23.16    txt   0       Leaving Cer
+--------------------------------------------------------------------------------
+
+
+
+non_empty_blocks[0]["lines"][0]['spans'][0]["text"]
+'SECTION I                       COMPREHENDING                    (100 marks) '
+
+non_empty_blocks[1]["lines"][0]['spans'][0]["text"]
+'TEXT 1 – FAMILY CONNECTIONS AND THE NATURAL WORLD'
+
+ipdb> non_empty_blocks[3]["lines"][0]['spans'][0]["text"]
+' '
+ipdb> non_empty_blocks[3]["lines"][0]['spans'][1]["text"]
+*** IndexError: list index out of range
+ipdb> non_empty_blocks[3]["lines"][1]['spans'][0]["text"]
+' '
+ipdb> non_empty_blocks[3]["lines"][1]['spans'][1]["text"]
+*** IndexError: list index out of range
+ipdb> non_empty_blocks[3]["lines"][2]['spans'][0]["text"]
+' '
+ipdb> non_empty_blocks[3]["lines"][2]['spans'][1]["text"]
+*** IndexError: list index out of range
+ipdb> non_empty_blocks[3]["lines"][3]['spans'][0]["text"]
+' '
+ipdb> non_empty_blocks[3]["lines"][4]['spans'][0]["text"]
+' '
+ipdb> non_empty_blocks[3]["lines"][5]['spans'][0]["text"]
+'Parents – at least those of my age – don’t like '
+ipdb> non_empty_blocks[3]["lines"][5]['spans'][0]["bbox"]
+(47.939998626708984, 147.11968994140625, 272.42156982421875, 159.11968994140625)
+
+And it is this y0 , 147, which allows us to place this text after 
+"TEXT 1 - ..." which has y0 of 91.12 in order.
+
+
+you would see something similar for the 1953 block.
+==> take the hbox for the first non-empty line.
