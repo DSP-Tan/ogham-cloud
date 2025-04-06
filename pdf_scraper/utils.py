@@ -1,6 +1,5 @@
 import fitz  
-from fitz import Rect
-import sys
+from   fitz import Rect
 
 def draw_rectangle_on_page(pdf_path: str, output_pdf: str,  page_number: int, rect: Rect):
     """
@@ -88,3 +87,5 @@ def split_block(block):
     block_2 = {**block, "lines": lines[split_index:]}
     
     return [block_1, block_2]
+
+
