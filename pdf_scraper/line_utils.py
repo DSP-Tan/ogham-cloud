@@ -1,4 +1,6 @@
 import numpy as np 
+import pandas as pd
+import re
 
 def get_mode_font(fonts):
     font_counts = np.unique(fonts,return_counts=True)
@@ -20,3 +22,58 @@ def get_common_font(fonts):
     for font in fonts[1:]:
         common_font =common_font_elems(common_font,font)
     return "".join(common_font)
+
+    
+def get_line_text(line: dict) -> str:
+    return "".join( [span["text"] for span in line["spans"] ] )
+
+def get_line_words(line:dict) -> list:
+    return re.findall(r'\b\w+\b', get_line_text(line) )
+    
+def line_is_empty(line):
+    return all( [span["text"].isspace() for span in line["spans"]] )
+
+def get_line_table(lines: dict):
+    '''
+    This function outputs a string which will list all the blocks in the page along with their coordinates, their
+    type, and the first word if it's a text block.
+    '''
+    table=[f"{'x0':8} {'x1':8} {'y0':8} {'y1':8} {'dx':8} {'dy':8} {'fonts':36} {'beginning':25}", "--"*60]
+    for line in lines:
+        font           = line["spans"][0]["font"] 
+        font_list      = list(set(span["font"] for span in line["spans"] ) )
+        x0, y0, x1, y1 = line['bbox']
+        beginning      = line["spans"][0]["text"][:25]
+        line=f"{x0:<8.2f} {x1:<8.2f} {y0:<8.2f} {y1:<8.2f} {x1-x0:<8.2f} {y1-y0:<8.2f} {' '.join(font_list):36} {beginning:<25}"
+        table.append(line)
+    table.extend( ["--"*60,"\n"*2] )
+    line_table = "\n".join(table)
+    return line_table
+
+def print_line_table(lines:dict):
+    print(get_line_table(lines))
+    return None
+
+    
+
+
+def get_line_df(lines):
+    coords         = [line['bbox'] for line in lines]
+    x0             = [coord[0] for coord in coords]
+    y0             = [coord[1] for coord in coords]
+    dL             = [coords[i+1][1] - coords[i][1] for i in range(len(coords)-1)] + [np.nan]
+    x1             = [coord[2] for coord in coords]
+    y1             = [coord[3] for coord in coords]
+    n_spans        = [len(line["spans"]) for line in lines]
+    font_list      = [                [span["font"] for span in line["spans"]  ]  for line in lines]
+    common_font    = [get_common_font([span["font"] for span in line["spans"]  ]) for line in lines]
+    mode_font      = [get_mode_font(  [span["font"] for span in line["spans"]  ]) for line in lines]
+    w              = [coord[2]-coord[0] for coord in coords]
+    h              = [coord[3]-coord[1] for coord in coords]
+    text           = [get_line_text(line)       for line in lines]
+    n_words        = [len(get_line_words(line)) for line in lines ]
+
+    
+    data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,      
+    "common_font":common_font,"mode_font":mode_font,"n_words":n_words,"w":w,"h":h,"text":text}
+    return pd.DataFrame(data_dict)
