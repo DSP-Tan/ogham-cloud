@@ -1,5 +1,4 @@
 import fitz
-from fitz import Rect
 import pandas as pd
 import numpy  as np
 from numpy.linalg import norm
@@ -7,7 +6,7 @@ from line_utils   import *
 from utils        import *
 
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import make_column_transformer
+from sklearn.compose       import make_column_transformer
 
 
 pdf_file = "test_pdfs/LC002ALP100EV_2024.pdf"
@@ -20,12 +19,16 @@ block            = blocks[6]
 lines = [line for line in block["lines"] if not line_is_empty(line)]
 
 pd.set_option("display.float_format", "{:.2f}".format)
-df = get_line_df(lines)
+df        = get_line_df(lines)
+
+# We need to choose now the rows where the number of words is below 4
+word_mask = df["n_words"].to_numpy() < 4
+
 print("Raw lines dataframe:")
 print(df.head(10))
 
 # These cols of the df are not informative for text-block clustering.
-bad_nums = ["n_spans","dL","n_words","x1"]
+bad_nums = ["n_spans","dL","x1","n_words"]
 num_vars = [ col for col in df.select_dtypes(include=np.number).columns if col not in bad_nums ] 
 
 bad_cats = ["font_list","text"]
@@ -34,28 +37,27 @@ cat_vars = [col for col in  df.select_dtypes(include='object').columns if col no
 basic_preproc = make_column_transformer(
     (StandardScaler(), num_vars),
     (OneHotEncoder(drop="if_binary",sparse_output=False, handle_unknown="error"), cat_vars),
-    ("passthrough", ["n_words"]),
     remainder="drop"
     )
-X_cols = num_vars + cat_vars + ["n_words"]
+X_cols = num_vars + cat_vars 
 X      = basic_preproc.fit_transform(df)
 X_df   = pd.DataFrame(X,columns=X_cols )
 print(f"Preprocessed dataframe of shape {X.shape}:")
 print(X_df.head(20),"\n")
 
 
-# initialise clusters
+# initialise clusters - first and last data point are top and bottom of page
 k=2
-clusts = X[[0, X.shape[0]-1]]
+m, n = X.shape
+clusts  = X[[0, m-1]]
+d_clust = norm(clusts,axis=1)
 
-# We need to choose now the rows where the number of words is below 4
-i_nword   = X_cols.index("n_words")
-word_mask = X[:,i_nword] < 4
-full_cols = num_vars + cat_vars
+i_w       = X_cols.index("w")
 
 # full distance calc for certain, N-1 dimensional for others.
-full_vect  = X[~word_mask, :i_nword]
-full_clust = clusts[:, :i_nword]
+full_cols  = num_vars + cat_vars
+full_vect  = X[~word_mask, :]
+full_clust = clusts[:, :]
 
 full_diff   = full_vect[:, np.newaxis, :] - full_clust[np.newaxis, :, :]  #  (m_full, 2, n)
 full_dists  = norm(full_diff, axis=2)                                     #  (m_full, 2)
@@ -66,19 +68,17 @@ print(pd.DataFrame(full_vect, columns= full_cols).head(8),"\n\n" )
 
 
 # If we have a line with a small n_words, the width is no longer a good variable for clustering.
-i_w     = X_cols.index("w")
-small_cols = [i for i in range(i_nword) if i != i_w]
-# Have to index like that, because numpy interprects X[list1,list2] as asking for a bunch of pairs of coordinates of mathces from each list.
+small_cols  = [i for i in range(n) if i != i_w]
 small_vect  = X[ word_mask][:, small_cols ]
 small_clust = clusts[:, small_cols]
-
-print(f"Width-excluded vector of shape {small_vect.shape}")
-print(pd.DataFrame(small_vect, columns = X_df.columns[small_cols]).head(2),"\n\n")
 
 small_diff   = small_vect[:, np.newaxis, :] - small_clust[np.newaxis, :, :]  #  (m_small, 2, n -1)
 small_dists  = norm(small_diff, axis=2)                                      #  (m_small, 2)
 
-dists = np.empty((word_mask.shape[0], k))
+print(f"Width-excluded vector of shape {small_vect.shape}")
+print(pd.DataFrame(small_vect, columns = X_df.columns[small_cols]).head(2),"\n\n")
+
+dists = np.empty((m, k))
 dists[word_mask]  = small_dists
 dists[~word_mask] = full_dists
 labels = np.argmin(dists, axis=1)
@@ -89,10 +89,32 @@ X_df["cluster"] = pd.Series(labels)
 import ipdb; ipdb.set_trace()
 
 
-d_clust = norm(clusts,axis=1)
 max_iter = 1000
+tol = 1
+for i in max_iter:
+    if d_clust < tol:
+        break
+    new_clusts = np.vstack([X[labels == i].mean(axis=0) for i in range(k)])
 
-#new_clusts = np.vstack([X[labels == i].mean(axis=0) for i in range(k)])
 
 
+def calc_dists(clusts, X, word_mask, i_w):
+    k = clusts.shape[0]
+    m, n = X.shape
+    
+    full_vect  = X[~word_mask, :]
+    
+    full_diff   = full_vect[:, np.newaxis, :] - clusts[np.newaxis, :, :]      #  (m_full, 2, n)
+    full_dists  = norm(full_diff, axis=2)                                     #  (m_full, 2)
+    
+    small_vect  = np.delete(X[word_mask], i_w, axis=1)
+    small_clust = np.delete(clusts,       i_w, axis=1)
+    
+    small_diff   = small_vect[:, np.newaxis, :] - small_clust[np.newaxis, :, :]  #  (m_small, 2, n -1)
+    small_dists  = norm(small_diff, axis=2)                                      #  (m_small, 2)
+    
+    dists = np.empty((m, k))
+    dists[word_mask]  = small_dists
+    dists[~word_mask] = full_dists
 
+    return dists
