@@ -55,7 +55,6 @@ d_clust = norm(clusts,axis=1)
 i_w       = X_cols.index("w")
 
 # full distance calc for certain, N-1 dimensional for others.
-full_cols  = num_vars + cat_vars
 full_vect  = X[~word_mask, :]
 full_clust = clusts[:, :]
 
@@ -63,20 +62,21 @@ full_diff   = full_vect[:, np.newaxis, :] - full_clust[np.newaxis, :, :]  #  (m_
 full_dists  = norm(full_diff, axis=2)                                     #  (m_full, 2)
 
 print(f"Full vector of shape {full_vect.shape}")
-print(pd.DataFrame(full_vect, columns= full_cols).head(8),"\n\n" )
+print(pd.DataFrame(full_vect, columns= X_cols).head(8),"\n\n" )
 
 
 
 # If we have a line with a small n_words, the width is no longer a good variable for clustering.
-small_cols  = [i for i in range(n) if i != i_w]
-small_vect  = X[ word_mask][:, small_cols ]
-small_clust = clusts[:, small_cols]
+small_vect  = np.delete(X[word_mask], i_w, axis=1)
+small_clust = np.delete(clusts,       i_w, axis=1)
 
 small_diff   = small_vect[:, np.newaxis, :] - small_clust[np.newaxis, :, :]  #  (m_small, 2, n -1)
 small_dists  = norm(small_diff, axis=2)                                      #  (m_small, 2)
 
+small_cols = [i for i in X_cols if i != "w" ]
+
 print(f"Width-excluded vector of shape {small_vect.shape}")
-print(pd.DataFrame(small_vect, columns = X_df.columns[small_cols]).head(2),"\n\n")
+print(pd.DataFrame(small_vect, columns = small_cols).head(2),"\n\n")
 
 dists = np.empty((m, k))
 dists[word_mask]  = small_dists
@@ -86,15 +86,14 @@ labels = np.argmin(dists, axis=1)
 X_df["cluster"] = pd.Series(labels)
 #print(X_df.head(8))
 
-import ipdb; ipdb.set_trace()
 
 
-max_iter = 1000
-tol = 1
-for i in max_iter:
-    if d_clust < tol:
-        break
-    new_clusts = np.vstack([X[labels == i].mean(axis=0) for i in range(k)])
+#max_iter = 1000
+#tol = 1
+#for i in range(max_iter):
+#    if d_clust < tol:
+#        break
+#    new_clusts = np.vstack([X[labels == i].mean(axis=0) for i in range(k)])
 
 
 
