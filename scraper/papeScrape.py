@@ -1,7 +1,8 @@
 import sys,os
+from pathlib import Path
+from selenium.webdriver.common.by  import By
+from selenium.webdriver.support.ui import Select
 import undetected_chromedriver as uc
-from   selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui  import Select
 from time import sleep
 from utils import close_adobe, moveFreshPapers
 
@@ -27,6 +28,8 @@ if __name__=="__main__":
         print("Provide year range and subject:")
         print(f"Example use:\npython {sys.argv[0]} 2014 2016 History")
         sys.exit(1)
+
+    import ipdb; ipdb.set_trace()
 
     #To Do: test for valid year input, and test for valid subject against list of subjects.
     year1 = sys.argv[1] if sys.argv[1] < sys.argv[2] else sys.argv[2]
