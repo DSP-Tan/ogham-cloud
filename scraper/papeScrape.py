@@ -1,4 +1,4 @@
-import sys,os
+import sys
 from pathlib import Path
 from selenium.webdriver.common.by  import By
 from selenium.webdriver.support.ui import Select
@@ -29,8 +29,6 @@ if __name__=="__main__":
         print(f"Example use:\npython {sys.argv[0]} 2014 2016 History")
         sys.exit(1)
 
-    import ipdb; ipdb.set_trace()
-
     #To Do: test for valid year input, and test for valid subject against list of subjects.
     year1 = sys.argv[1] if sys.argv[1] < sys.argv[2] else sys.argv[2]
     year2 = sys.argv[2] if sys.argv[2] > sys.argv[1] else sys.argv[1]
@@ -38,13 +36,14 @@ if __name__=="__main__":
     
     print(f"Downloading papers from {year1} to {year2}")
     
-    url     = "https://www.examinations.ie"
-    exam    = "Leaving Certificate"
-    dl_dir  = r'C:\Users\DELL\Downloads\\'
+    url      = "https://www.examinations.ie"
+    exam     = "Leaving Certificate"
+    dl_dir   = Path.home() / 'Downloads'
+    exam_dir = Path(__file__).parent.parent / "Exams"
     
     options = uc.ChromeOptions()
     options.add_experimental_option("prefs", {
-        "download.default_directory": dl_dir,  
+        "download.default_directory": str(dl_dir),  
         "download.prompt_for_download": False,  
         "plugins.always_open_pdf_externally": True,  
     })
@@ -54,7 +53,7 @@ if __name__=="__main__":
     driver = uc.Chrome(options=options)
     
     print(f"Get {url}")
-    driver.get(url)                                                                 ; sleep(19)
+    driver.get(url)                                                                 ; sleep(13)
     driver.get(url+"/exammaterialarchive")                                          ; sleep(5)
     driver.find_element(By.ID, "MaterialArchive__noTable__cbv__AgreeCheck").click() ; sleep(5)
     
@@ -80,26 +79,27 @@ if __name__=="__main__":
                 continue
                 
             level = fname[5:7] 
-            levels = { "AL":"Higher", "GL":"Ordinary", "CL":"Common","BL":"Foundation", "ZL":"Sound file"}
-            dest   = rf"C:\Users\DELL\Desktop\Exams\{subject.lower().replace(' ','_')}\{level}"
-            file_dest = dest + f"\\{fname.rstrip('.pdf')}_{year}.pdf"
+            levels      = { "AL":"Higher", "GL":"Ordinary", "CL":"Common","BL":"Foundation", "ZL":"Sound file"}
+            dest        = exam_dir / subject.lower().replace(' ','_') / level
+            file_dest   = dest / f"{fname.rstrip('.pdf')}_{year}.pdf"
+            file_source = dl_dir / fname
             uri= "N/A"
 
             # Download only if If you don't already have the file in the downloads folder or the destination folder
-            if not ( os.path.exists(dl_dir + fname) or os.path.exists(file_dest) ) :
+            if not ( file_source.exists() or file_dest.exists() ) :
                 print(f"Downloading: {paperDesc:35} - {fname:25} to {file_dest}")
                 driver.get(paperLink); sleep(3)
                 close_adobe(); sleep(3)
                 # Write to download ledger
-                with open(rf"C:\Users\DELL\Desktop\Exams\download_table.txt", "a") as file:
-                    file.write(f"{subject},{level},{year},{paperDesc},{fname}, {paperLink}, {uri}, {file_dest}\n")
+                with open(exam_dir / "download_table.txt", "a") as file:
+                    file.write(f"{subject},{level},{year},{paperDesc},{fname}, {paperLink}, {uri}, {str(file_dest)}\n")
 
             # Organise, rename, upload downloaded files
-            os.makedirs(dest,exist_ok=True)
-            if os.path.exists(file_dest) and os.path.exists(dl_dir+fname):
-                os.remove(dl_dir + fname)
-            elif os.path.exists(dl_dir+fname) and not os.path.exists(file_dest):
-                os.rename(dl_dir + fname, file_dest)
+            dest.mkdir(parents=True, exist_ok=True)
+            if file_dest.exists() and file_source.exists():
+                file_source.unlink()
+            elif file_source.exists() and not file_dest.exists():
+                file_source.rename(file_dest)
 
     
     driver.close()
