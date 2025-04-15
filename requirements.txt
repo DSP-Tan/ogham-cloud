@@ -2,4 +2,14 @@ selenium
 undetected_chromedriver
 setuptools
 psutil
+
+numpy
+pandas
+scikit-learn
+
+pymupdf
+
+
+
 ipdb
+ipykernel
