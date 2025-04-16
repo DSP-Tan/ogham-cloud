@@ -4,7 +4,7 @@ from selenium.webdriver.common.by  import By
 from selenium.webdriver.support.ui import Select
 import undetected_chromedriver as uc
 from time import sleep
-from utils import close_adobe, moveFreshPapers
+from web_scraper.utils import close_adobe, moveFreshPapers
 
 def find_papers(driver):
     rows = driver.find_elements(By.XPATH, "//tr[td[@class='materialbody']]")

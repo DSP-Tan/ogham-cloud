@@ -3,7 +3,7 @@ import undetected_chromedriver as uc
 from   selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui  import Select
 from time   import sleep
-from tempScrape import find_papers
+from web_scraper.papeScrape import find_papers
 
 # We are going to look at maths 2020 exam material downloads table
 subject ="Mathematics"
