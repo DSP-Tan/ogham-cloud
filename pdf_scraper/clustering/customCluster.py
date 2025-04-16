@@ -1,12 +1,11 @@
 import fitz, itertools
 import pandas as pd
 import numpy  as np
-from numpy.linalg  import norm
-from line_utils    import *
-from utils         import *
-from cluster_utils import calc_cust_dists, calc_inertia, custom_cluster_optimise, preproc
+from pdf_scraper.line_utils    import line_is_empty, get_line_df
+from pdf_scraper.clustering.cluster_utils import calc_cust_dists, calc_inertia, custom_cluster_optimise, preproc
+from pathlib import Path
 
-pdf_file = "test_pdfs/LC002ALP100EV_2024.pdf"
+pdf_file         = Path(__file__).parent.parent / "test_pdfs" / "LC002ALP100EV_2024.pdf"
 doc              = fitz.open(pdf_file)
 page             = doc[3]
 page_dict        = page.get_text("dict",sort=True)
