@@ -1,9 +1,8 @@
 import fitz, itertools
 import pandas as pd
 import numpy  as np
-from numpy.linalg import norm
 from line_utils   import line_is_empty, get_line_df
-from cluster_utils import print_clusters, preproc, calc_normal_dists, calc_inertia, cluster_optimise
+from cluster_utils import preproc, cluster_optimise
 from utils        import *
     
 from sklearn.cluster import KMeans
