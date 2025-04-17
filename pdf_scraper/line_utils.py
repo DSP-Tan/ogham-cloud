@@ -77,3 +77,12 @@ def get_line_df(lines):
     data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,      
     "common_font":common_font,"mode_font":mode_font,"n_words":n_words,"w":w,"h":h,"text":text}
     return pd.DataFrame(data_dict)
+
+
+def get_bbox(lines):
+    line_df = get_line_df(lines)
+    x0 = line_df.x0.min()
+    y0 = line_df.y0.min() 
+    y1 = line_df.x1.max() 
+    x1 = line_df.y1.max()
+    return tuple( float(i) for i in [x0,y0,x1,y1] )
