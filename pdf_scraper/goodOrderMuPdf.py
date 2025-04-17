@@ -3,83 +3,9 @@ import fitz
 from fitz import Rect
 from itertools import takewhile
 from itertools import dropwhile
-from utils import draw_rectangle_on_page, get_block_text, get_block_table
+from pdf_scraper.block_utils import get_block_text, get_block_table, in_the_pink, isEmptyBlock
+from pdf_scraper.draw_utils  import get_pink_boundary, draw_rectangle_on_page
 
-    
-def get_pink_boundary(drawings, pink_fill):
-    """
-    Return one rectangle pink fill box in the page, by joining together other overlapping rectangle pink boxes.
-
-    :param drawings: List of drawing objects from get_drawings()
-    :param pink_fill: tuple specifying pink colour. (1.0, 0.8980000019073486, 0.9490000009536743) for 2024 P1
-    :return: fitz.Rect of pink boundary or None
-    """
-    # To Do: 
-    # Only look at pink fill objects which are rectangles
-    pinks = [d for d in drawings if d["type"] == "f" and d["fill"]==pink_fill ]
-
-    if not pinks:
-        return None
-
-    def in_the_stink(pink):
-        '''
-        returns True if the given pink is contained in any other pink on the page.
-        '''
-        return any( other["rect"].contains(pink["rect"])  for other in pinks if other != pink )
-
-    filtered_pinks = [p for p in pinks if not in_the_stink(p)]
-
-    x0 = min([p['rect'].x0 for p in filtered_pinks] )
-    y0 = min([p['rect'].y0 for p in filtered_pinks] )
-    x1 = max([p['rect'].x1 for p in filtered_pinks] )
-    y1 = max([p['rect'].y1 for p in filtered_pinks] )
-    king_pink = fitz.Rect(x0,y0,x1,y1)
-
-    return king_pink
-
-def in_the_pink(block: dict, king_pink: Rect):
-    x0, y0, x1, y1 = block['bbox']
-    block_rect = Rect(x0,y0,x1,y1)
-    return  king_pink.contains(block_rect)
-    
-
-def isColumnSize(block, page_width):
-    x0, y0, x1, y1 = block['bbox']
-    col_width = x1 - x0
-    return col_width <= page_width/2
-
-def isEmptyBlock(block: dict):
-    if block["type"]:
-        return 0
-    return 0 if get_block_text(block) else 1
-
-
-def identify_dual_column(blocks, page_width, king_pink):
-    possiBlocks     = [block for block in blocks      if isColumnSize(    block,page_width) ]   
-    possiPinks      = [block for block in possiBlocks if in_the_pink(     block,king_pink) ]   
-    dual_col_blocks = [block for block in possiPinks  if not isEmptyBlock(block)]
-
-    return dual_col_blocks
-
-
-def sort_dual_column_blocks(blocks: dict):
-    coords = [block['bbox'] for block in blocks ] 
-    x0_min = min(coord[0] for coord in coords)
-    x0_max = max(coord[0] for coord in coords)
-    x1_min = min(coord[1] for coord in coords)
-    x1_max = max(coord[1] for coord in coords)
-
-    vert_ordered = sorted(blocks, key = lambda block: block["bbox"][1])
-
-    for block in vert_ordered:
-        x0, y0, x1, y1 = block['bbox']
-        dl = x0-x0_min
-        dr = x0-x0_max
-        block["col"] = 0 if abs(dl) < abs(dr) else 1
-    
-    col_ordered = sorted(vert_ordered,key = lambda x: x['col'])
-
-    return col_ordered
 
 
 def parse_page(page, king_pink=None):
