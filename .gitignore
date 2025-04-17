@@ -1,0 +1,4 @@
+Exams/
+build/
+ogham_cloud.egg-info/
+*pycache*
