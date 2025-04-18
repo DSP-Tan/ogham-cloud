@@ -2,6 +2,19 @@ from pdf_scraper.clustering.customCluster import reblock_lines
 from pdf_scraper.line_utils import line_is_empty, get_bbox
 from fitz import Rect
 
+def clean_blocks(blocks: list[dict]):
+    '''
+    This function removes all empty blocks from a list of blocks, and within a given
+    block it removes all empty lines. Empty here means consisting of only empty space text. 
+
+    It will not do anything to image blocks. 
+    '''
+    non_empty_blocks      = [block for block in blocks if not is_empty_block(block)]
+    non_empty_text_blocks = [block for block in blocks if not block["type"]]
+    for block in non_empty_text_blocks:
+        block["lines"] = [line for line in block["lines"] if not line_is_empty(line)]
+    return non_empty_blocks
+
 def get_block_text(block_dict: dict ):
     '''
     For a given block dictionary element, as output by Page.get_text("dict")["blocks"], this 
@@ -16,7 +29,7 @@ def get_block_text(block_dict: dict ):
     block_text="\n".join( [ i for i in line_texts if not i.isspace() ])
     return block_text
 
-def get_block_table(blocks: dict):
+def get_block_table(blocks: list[dict]):
     '''
     This function outputs a string which will list all the blocks in the page along with their coordinates, their
     type, and the first word if it's a text block.
@@ -30,15 +43,18 @@ def get_block_table(blocks: dict):
         table.append(line)
     table.extend( ["--"*40,"\n"*2] )
     block_table = "\n".join(table)
-    print(block_table)
     return block_table
+
+def print_block_table(blocks: list[dict]):
+    print(get_block_table(blocks))
+    return None
 
 def in_the_pink(block: dict, king_pink: Rect):
     x0, y0, x1, y1 = block['bbox']
     block_rect = Rect(x0,y0,x1,y1)
     return  king_pink.contains(block_rect)
 
-def isColumnSize(block, page_width):
+def isColumnSize(block: dict, page_width:float):
     x0, y0, x1, y1 = block['bbox']
     col_width = x1 - x0
     return col_width <= page_width/2
@@ -49,7 +65,10 @@ def is_empty_block(block: dict):
     return 0 if get_block_text(block) else 1
 
 
-def identify_dual_column(blocks, page_width, king_pink):
+# To Do: you should also check to see that there are some blocks in the pink of column size at the
+# left, and some at the right. I.e. there will be a bunch of blocks with one kind of x0, and a bunch
+# with antoher kind of x0
+def identify_dual_column(blocks: list[dict], page_width: float, king_pink: Rect):
     possiBlocks     = [block for block in blocks      if isColumnSize(    block,page_width) ]   
     possiPinks      = [block for block in possiBlocks if in_the_pink(     block,king_pink) ]   
     dual_col_blocks = [block for block in possiPinks  if not is_empty_block(block)]
@@ -57,7 +76,7 @@ def identify_dual_column(blocks, page_width, king_pink):
     return dual_col_blocks
 
 
-def sort_dual_column_blocks(blocks: dict):
+def sort_dual_column_blocks(blocks: list[dict]):
     coords = [block['bbox'] for block in blocks ] 
     x0_min = min(coord[0] for coord in coords)
     x0_max = max(coord[0] for coord in coords)
@@ -77,7 +96,7 @@ def sort_dual_column_blocks(blocks: dict):
     return col_ordered
 
 
-def split_block(block):
+def split_block(block: dict):
     """
     Splits block according to text formatting and removes any blank lines if they exist.
     """
@@ -101,8 +120,20 @@ def split_block(block):
     block1 = {'number':number, 'type':type, 'bbox':bbox1 ,'lines':lines1}
     return (block0, block1)
 
-def clean_blocks(blocks):
-    non_empty_blocks = [block for block in blocks if not is_empty_block(block)]
-    for block in non_empty_blocks:
-        block["lines"] = [line for line in block["lines"] if not line_is_empty(line)]
-    return non_empty_blocks
+
+def preproc_blocks(blocks: list[dict]):
+    blocks = clean_blocks(blocks)
+    new_blocks = []
+    for i, block in enumerate(blocks):
+        if block["type"]:
+            new_blocks.append(block)
+            continue
+        if len(block["lines"]) <=1:
+            new_blocks.append(block)
+            continue
+        if detect_bad_block(block,king_pink):
+            two_blocks = split_block(block)
+            new_blocks.extend(two_blocks)
+            continue
+        new_blocks.append(block)
+    return new_blocks
