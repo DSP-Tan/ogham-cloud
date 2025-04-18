@@ -54,9 +54,6 @@ def print_line_table(lines:dict):
     print(get_line_table(lines))
     return None
 
-    
-
-
 def get_line_df(lines):
     coords         = [line['bbox'] for line in lines]
     x0             = [coord[0] for coord in coords]
@@ -78,7 +75,6 @@ def get_line_df(lines):
     "common_font":common_font,"mode_font":mode_font,"n_words":n_words,"w":w,"h":h,"text":text}
     return pd.DataFrame(data_dict)
 
-
 def get_bbox(lines):
     line_df = get_line_df(lines)
     x0 = line_df.x0.min()
@@ -86,3 +82,32 @@ def get_bbox(lines):
     y1 = line_df.x1.max() 
     x1 = line_df.y1.max()
     return tuple( float(i) for i in [x0,y0,x1,y1] )
+
+
+from scipy.stats import gaussian_kde
+from scipy.signal import find_peaks
+def line_space_discont(lines):
+    lines = [line for line in lines if not line_is_empty(line)]
+    df = get_line_df(lines)
+    dLs = np.array(df.dL[:-1])
+    
+    for i, val in enumerate(dLs):
+        temp = np.delete(dLs, i, 0)
+        if all(val > temp*1.6):
+            #print(i, all(val > temp*1.6) )
+            return True
+    return False
+
+def find_width_peaks(lines):
+    df = get_line_df(lines)
+    df = df[df.n_words > 4]
+    w  = np.array(df.w)
+    if len(w)==0:
+        return []
+    elif len(w) <=2:
+        return [w.mean()]
+    x_grid = np.linspace(w.min()-50, w.max()+50,1000)
+    kde=gaussian_kde(w,bw_method='silverman')
+    kde_vals = kde(x_grid)
+    peaks, _ = find_peaks(kde_vals, prominence = 0.0001)
+    return peaks
