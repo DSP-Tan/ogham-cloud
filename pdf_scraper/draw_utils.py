@@ -17,6 +17,10 @@ def draw_rectangle_on_page(pdf_path: str, output_pdf: str,  page_number: int, re
     out_doc.close()
     doc.close()
 
+# To Do: confirm the colours for a variety of papers.
+# Here is an example of where you could get the colour for the pink background colour.
+# drawings  = page.get_drawings()
+# pink_fill = drawings[0]['fill']
 def get_pink_boundary(drawings, pink_fill):
     """
     Return one rectangle pink fill box in the page, by joining together other overlapping rectangle pink boxes.
