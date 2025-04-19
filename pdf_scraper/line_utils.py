@@ -86,17 +86,32 @@ def get_bbox(lines):
 
 from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks
-def line_space_discont(lines):
+def count_vert_space_discont(lines):
     lines = [line for line in lines if not line_is_empty(line)]
     df = get_line_df(lines)
     dLs = np.array(df.dL[:-1])
     
+    count=0
     for i, val in enumerate(dLs):
         temp = np.delete(dLs, i, 0)
         if all(val > temp*1.6):
+            count +=1
+    return count
+
+def line_space_discont(lines):
+    lines = [line for line in lines if not line_is_empty(line)]
+    df = get_line_df(lines)
+
+    dLs = np.array(df.dL[:-1])
+    median = np.median(df.dL[:-1])
+
+    for i, val in enumerate(dLs):
+        temp = np.delete(dLs, i, 0)
+        if val > 1.45*median:
             #print(i, all(val > temp*1.6) )
             return True
     return False
+
 
 def find_width_peaks(lines):
     df = get_line_df(lines)

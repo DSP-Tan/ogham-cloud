@@ -1,0 +1,8 @@
+When you get the bounding box of a block of text, and use that to sort the position of the text, sometimes
+the text has loads of empty lines at the start, so that the bbox starts much higher up than the text. This 
+gives a false sense of where the text should be in ordering. 
+
+Perhaps you should redetermine the bboxes for each box to be the bboxes of the first and last non-empty lines. 
+
+
+A function which works on "lines" rather than "line" is a block function and not a lines funciton. 

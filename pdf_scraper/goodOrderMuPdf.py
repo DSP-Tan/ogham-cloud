@@ -1,9 +1,10 @@
-import sys
 import fitz
+from pathlib import Path
 from fitz import Rect
 from itertools import takewhile
 from itertools import dropwhile
-from pdf_scraper.block_utils import get_block_text, get_block_table, in_the_pink, isEmptyBlock
+from pdf_scraper.block_utils import get_block_text, print_block_table, detect_bad_block
+from pdf_scraper.block_utils import preproc_blocks, identify_dual_column, sort_dual_column_blocks
 from pdf_scraper.draw_utils  import get_pink_boundary, draw_rectangle_on_page
 
 
@@ -12,53 +13,50 @@ def parse_page(page, king_pink=None):
     page_dict  = page.get_text("dict",sort=True)
     
     page_width  = page_dict["width"]   # This is a document wide thing doesn't need to be per page.
-    blocks      = page_dict["blocks"]
+    raw_blocks  = page_dict["blocks"]
+
+    blocks = preproc_blocks(raw_blocks, king_pink)
     
     print(f"There are {len(blocks)} blocks on this page")
     print(f"page_width/2 = {page_width/2}")
 
-    non_empty_blocks = [ block for block in blocks if not isEmptyBlock(block) ]
-    #x_sorted_blocks  = sorted(non_empty_blocks, key = lambda x: x["bbox"][0])
-    #sorted_blocks    = sorted(x_sorted_blocks,  key = lambda x: x["bbox"][1])
-    #table_non_empty  = get_block_table(sorted_blocks)
-    print(f"Here are all {len(non_empty_blocks)} non-empty blocks")
-    table_non_empty  = get_block_table(non_empty_blocks)
+    print(f"Here are all {len(blocks)} non-empty blocks")
+    print_block_table(blocks)
 
     img_txt = "--"*40+"\n"+"Image"+"\n"+"--"*40
     # If there is no enclosing pink box, then there is no dual column 
     if not king_pink:
-        txt_img_blocks = [get_block_text(block) if block["type"]==0 else img_txt for block in non_empty_blocks]
+        txt_img_blocks = [get_block_text(block) if block["type"]==0 else img_txt for block in blocks]
         return "\n\n".join(txt_img_blocks)
         
 
-    dual_col_blocks   = identify_dual_column(non_empty_blocks, page_width, king_pink)
+    dual_col_blocks   = identify_dual_column(blocks, page_width, king_pink)
     sorted_duals      = sort_dual_column_blocks(dual_col_blocks)
 
     print(f"Here are {len(sorted_duals)} sorted dual-column blocks:\n")
-    sorted_cols_table = get_block_table(sorted_duals)
+    print_block_table(sorted_duals)
 
     first_col = dual_col_blocks[0 ]["number"]
     last_col  = dual_col_blocks[-1]["number"]
 
-    blocks_before = list(takewhile(lambda block: block["number"] != first_col, non_empty_blocks))
-    blocks_after  = list(dropwhile(lambda block: block["number"] != last_col,  non_empty_blocks))[1:]
+    blocks_before = list(takewhile(lambda block: block["number"] != first_col, blocks))
+    blocks_after  = list(dropwhile(lambda block: block["number"] != last_col,  blocks))[1:]
     
     final_blocks = blocks_before + sorted_duals + blocks_after
     print("Here are the before blocks:\n")
-    before_table = get_block_table(blocks_before)
+    print_block_table(blocks_before)
 
     print("Here are the final blocks:\n")
-    final_table = get_block_table(final_blocks)
+    print_block_table(final_blocks)
     
     txt_img_blocks = [get_block_text(block) if block["type"]==0 else img_txt for block in final_blocks ]
     page_text = "\n\n".join(txt_img_blocks)
-    import ipdb; ipdb.set_trace()
         
     return page_text
 
 if __name__=="__main__":
     # This is LC, english, higher level, Paper 1, English Version,  2024
-    pdf = "test_pdfs/LC002ALP100EV_2024.pdf" 
+    pdf = Path(__file__).parent / "test_pdfs" / "LC002ALP100EV_2024.pdf"
     
     doc = fitz.open(pdf)
     
@@ -66,8 +64,9 @@ if __name__=="__main__":
     print(f"There are {len(doc)} pages")
 
     
+    out_dir = "PyMuSortedPDF"
     for n_page, page in enumerate(doc):
-        if n_page !=3:
+        if n_page !=5:
             continue
         print(f"Page {n_page+1}\n")
         print(f"--"*20)
@@ -75,11 +74,14 @@ if __name__=="__main__":
         pink_fill = (1.0, 0.8980000019073486, 0.9490000009536743) #page_draws[0]["fill"]
         king_pink = get_pink_boundary(page_draws,pink_fill)
         if king_pink:
-            draw_rectangle_on_page(pdf, f"PyMuSortedPDF/bound_box_page_{n_page+1}.pdf",n_page,  king_pink)
+            pdf_box_out = Path(__file__).parent / out_dir / f"bound_box_page_{n_page+1}.pdf"
+            draw_rectangle_on_page(pdf, pdf_box_out ,n_page,  king_pink)
         
+        import ipdb; ipdb.set_trace()
         page_text = parse_page(page, king_pink)
 
-        with open(f"PyMuSortedPDF/MuPdfPage{n_page+1}.txt", "w") as o:
+        text_out = Path(__file__).parent / out_dir / f"MuPdfPage{n_page+1}.txt" 
+        with open(text_out, "w") as o:
             o.write(page_text)
 
         

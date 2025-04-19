@@ -12,3 +12,14 @@ Organisation:
 
 A directory just for clustering. All the primary clustering functions in cluster.py, the side utilities
 like printing etc, will go into cluster_utils.py.                                                           - Done
+
+
+# Other clustering ideas
+
+Aside from what you have already implemented:
+
+- square y-dimension to increase importance. 
+- experiment more with post standardisation importance scaling of variables.
+
+- Just use the discontinuity in dL for an empty-line-removed, vertically sorted, bunch of lines to find
+  the split point. 

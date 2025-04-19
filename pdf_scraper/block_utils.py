@@ -1,6 +1,9 @@
 from pdf_scraper.clustering.customCluster import reblock_lines
-from pdf_scraper.line_utils import line_is_empty, get_bbox
+from pdf_scraper.line_utils import line_is_empty, get_bbox, get_line_df, count_vert_space_discont
 from fitz import Rect
+from scipy.stats import gaussian_kde
+from scipy.signal import find_peaks
+import numpy as np
 
 def clean_blocks(blocks: list[dict]):
     '''
@@ -96,6 +99,37 @@ def sort_dual_column_blocks(blocks: list[dict]):
     return col_ordered
 
 
+def find_width_peaks(lines):
+    df = get_line_df(lines)
+    df = df[df.n_words > 4]
+    w  = np.array(df.w)
+    if len(w)==0:
+        return []
+    elif len(w) <=2:
+        return [w.mean()]
+    x_grid = np.linspace(w.min()-50, w.max()+50,1000)
+    kde=gaussian_kde(w,bw_method='silverman')
+    kde_vals = kde(x_grid)
+    peaks, _ = find_peaks(kde_vals, prominence = 0.0001)
+    return peaks
+
+
+def detect_bad_block(block: dict,king_pink: Rect):
+    '''
+    This function
+    '''
+    lines=[line for line in block["lines"] if not line_is_empty(line)]
+    df = get_line_df(lines)
+    pink = in_the_pink(block, king_pink)
+    n_base_fonts  = len(df.common_font.value_counts()) >= 2
+    n_width_modes = len(find_width_peaks(lines)) >=2
+    space_discont = count_vert_space_discont(lines) >=1
+    two_o_three   = [n_base_fonts, n_width_modes, space_discont]
+
+    if pink and sum(two_o_three) >=2:
+        return True
+    return False
+
 def split_block(block: dict):
     """
     Splits block according to text formatting and removes any blank lines if they exist.
@@ -121,8 +155,10 @@ def split_block(block: dict):
     return (block0, block1)
 
 
-def preproc_blocks(blocks: list[dict]):
+def preproc_blocks(blocks: list[dict], king_pink):
     blocks = clean_blocks(blocks)
+    if not king_pink:
+        return blocks
     new_blocks = []
     for i, block in enumerate(blocks):
         if block["type"]:

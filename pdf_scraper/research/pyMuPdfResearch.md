@@ -131,9 +131,9 @@ The final page is just the credits and I suppose we don't want it.
 
 ### Page 2 - Text 1
 
-- All in correct order. 
+- Text all in correct order. 
 
-- Image is not appearing in exactly correct position.
+- Image is not appearing in correct position.
 
 
 ### Page 3 - Text 1 - Continued
