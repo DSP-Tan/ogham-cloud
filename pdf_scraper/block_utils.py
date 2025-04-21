@@ -71,8 +71,14 @@ def is_empty_block(block: dict):
 # To Do: you should also check to see that there are some blocks in the pink of column size at the
 # left, and some at the right. I.e. there will be a bunch of blocks with one kind of x0, and a bunch
 # with antoher kind of x0
-def identify_dual_column(blocks: list[dict], page_width: float, king_pink: Rect):
-    possiBlocks     = [block for block in blocks      if isColumnSize(    block,page_width) ]   
+# - If you have short headers this will select them.
+# - You should really put in a check on the common font of all lines within the pink.
+# - This would mean writing a function which gets all blocks in the pink, concatenates their lines, and gets their common font. 
+#   - Then take median common font or mode common font. 
+def identify_dual_column(blocks: list[dict], king_pink: Rect):
+
+    pink_width      = king_pink.x1 - king_pink.x0
+    possiBlocks     = [block for block in blocks      if isColumnSize(    block,pink_width) ]   
     possiPinks      = [block for block in possiBlocks if in_the_pink(     block,king_pink) ]   
     dual_col_blocks = [block for block in possiPinks  if not is_empty_block(block)]
 
@@ -154,9 +160,46 @@ def split_block(block: dict):
     block1 = {'number':number, 'type':type, 'bbox':bbox1 ,'lines':lines1}
     return (block0, block1)
 
+def simple_multi_split(block: dict):
+    number = block["number"]
+    type   = block["type"]
+    lines   = [line for line in block["lines"] if not line_is_empty(line)]
+    df = get_line_df(lines)
 
-def preproc_blocks(blocks: list[dict], king_pink):
+    median = np.median(df.dL[:-1])
+    indices = []
+    for i, dL in enumerate(df.dL):
+        if dL > 1.45*median:
+            indices.append(i+1)
+    split_lines = np.split(lines, indices, axis=0 )
+    split_blocks = [{'number':number, 'type':type, 'bbox':get_bbox(lins) ,'lines':lins} for lins in split_lines]
+    return split_blocks
+
+def renumber_blocks(blocks: list[dict]):
+    for i, block in enumerate(blocks):
+        block["number"] = i
+    return None
+
+def sort_blocks_by_y0(blocks: list[dict]):
+    return sorted(blocks, key = lambda block: block["bbox"][1])
+
+def rebox_blocks(blocks: list[dict]):
+    '''
+    This will loop through all blocks, and set the bbox of the blocks according
+    to the bbox of the lines. This is useful if for example you have removed all
+    empty lines from the block and want the bbox to reflect only actual text, and
+    not just empty newlines. 
+    '''
+    for block in blocks:
+        if block["type"]:
+            continue
+        block["bbox"] = get_bbox(block["lines"])
+    return blocks
+    
+
+def preproc_blocks(blocks: list[dict], king_pink: Rect):
     blocks = clean_blocks(blocks)
+    rebox_blocks(blocks)
     if not king_pink:
         return blocks
     new_blocks = []
@@ -168,8 +211,29 @@ def preproc_blocks(blocks: list[dict], king_pink):
             new_blocks.append(block)
             continue
         if detect_bad_block(block,king_pink):
-            two_blocks = split_block(block)
-            new_blocks.extend(two_blocks)
+            #split_blocks = split_block(block)
+            split_blocks = simple_multi_split(block)
+            new_blocks.extend(split_blocks)
+            continue
+        if col_block_is_too_big(block, king_pink):
+            split_blocks = simple_multi_split(block)
+            new_blocks.extend(split_blocks)
             continue
         new_blocks.append(block)
-    return new_blocks
+    re_sorted_blocks = sorted(new_blocks, key = lambda block: block["bbox"][1])
+    renumber_blocks(re_sorted_blocks)
+    return re_sorted_blocks
+
+
+
+def col_block_is_too_big(block:dict, king_pink: Rect):
+    '''
+    This function is to identify if amongst the dual column blocks that have been 
+    identified, there is one that is too large and could be broken up. 
+    '''
+    lines=[line for line in block["lines"] if not line_is_empty(line)]
+    pink = in_the_pink(block, king_pink)
+    n_lines  = len(lines) >= 3
+    space_discont = count_vert_space_discont(lines) >1
+    too_big = all([n_lines, space_discont])
+    return pink and too_big

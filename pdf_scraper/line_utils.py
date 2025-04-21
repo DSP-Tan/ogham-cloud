@@ -79,8 +79,8 @@ def get_bbox(lines):
     line_df = get_line_df(lines)
     x0 = line_df.x0.min()
     y0 = line_df.y0.min() 
-    y1 = line_df.x1.max() 
-    x1 = line_df.y1.max()
+    x1 = line_df.x1.max() 
+    y1 = line_df.y1.max()
     return tuple( float(i) for i in [x0,y0,x1,y1] )
 
 
@@ -90,11 +90,12 @@ def count_vert_space_discont(lines):
     lines = [line for line in lines if not line_is_empty(line)]
     df = get_line_df(lines)
     dLs = np.array(df.dL[:-1])
+    median = np.median(df.dL[:-1])
     
     count=0
     for i, val in enumerate(dLs):
         temp = np.delete(dLs, i, 0)
-        if all(val > temp*1.6):
+        if val>1.45*median:
             count +=1
     return count
 

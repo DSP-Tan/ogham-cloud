@@ -30,7 +30,12 @@ def parse_page(page, king_pink=None):
         return "\n\n".join(txt_img_blocks)
         
 
-    dual_col_blocks   = identify_dual_column(blocks, page_width, king_pink)
+    dual_col_blocks   = identify_dual_column(blocks, king_pink)
+    # Somtimes there is an enclosing pink box but still no dual column. 
+    if not dual_col_blocks:
+        txt_img_blocks = [get_block_text(block) if block["type"]==0 else img_txt for block in blocks]
+        return "\n\n".join(txt_img_blocks)
+
     sorted_duals      = sort_dual_column_blocks(dual_col_blocks)
 
     print(f"Here are {len(sorted_duals)} sorted dual-column blocks:\n")
@@ -66,8 +71,8 @@ if __name__=="__main__":
     
     out_dir = "PyMuSortedPDF"
     for n_page, page in enumerate(doc):
-        if n_page !=5:
-            continue
+        #if n_page !=2:
+        #    continue
         print(f"Page {n_page+1}\n")
         print(f"--"*20)
         page_draws = page.get_drawings()
@@ -77,7 +82,6 @@ if __name__=="__main__":
             pdf_box_out = Path(__file__).parent / out_dir / f"bound_box_page_{n_page+1}.pdf"
             draw_rectangle_on_page(pdf, pdf_box_out ,n_page,  king_pink)
         
-        import ipdb; ipdb.set_trace()
         page_text = parse_page(page, king_pink)
 
         text_out = Path(__file__).parent / out_dir / f"MuPdfPage{n_page+1}.txt" 
