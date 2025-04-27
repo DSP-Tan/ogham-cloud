@@ -5,7 +5,7 @@ from itertools import takewhile
 from itertools import dropwhile
 from pdf_scraper.block_utils import get_block_text, print_block_table, detect_bad_block
 from pdf_scraper.block_utils import preproc_blocks, identify_dual_column, sort_dual_column_blocks
-from pdf_scraper.draw_utils  import get_pink_boundary, draw_rectangle_on_page
+from pdf_scraper.draw_utils  import get_pink_boundary, draw_rectangle_on_page, get_fill_df
 
 
 
@@ -61,7 +61,7 @@ def parse_page(page, king_pink=None):
 
 if __name__=="__main__":
     # This is LC, english, higher level, Paper 1, English Version,  2024
-    year=2022
+    year=2015
     level = "AL"
     fname =  f"LC002ALP100EV_{year}.pdf"
     examDir = Path(__file__).parent.parent / "Exams" / "english" / level
@@ -73,16 +73,18 @@ if __name__=="__main__":
     # There should be 12 pages in our test file here.
     print(f"There are {len(doc)} pages")
 
+    page2_drawings   = doc[1].get_drawings()
+    fill_colour      = get_fill_df(page2_drawings).fill.mode().values[0]
 
     out_dir = "scrapedPages"
     for n_page, page in enumerate(doc):
-        #if n_page !=2:
-        #    continue
+        if n_page !=1:
+            continue
         print(f"Page {n_page+1}\n")
         print(f"--"*20)
         page_draws = page.get_drawings()
-        pink_fill = (1.0, 0.8980000019073486, 0.9490000009536743) #page_draws[0]["fill"]
-        king_pink = get_pink_boundary(page_draws,pink_fill)
+
+        king_pink = get_pink_boundary(page_draws,fill_colour)
         if king_pink:
             pdf_box_out = Path(__file__).parent / out_dir / f"bound_box_page_{n_page+1}.pdf"
             draw_rectangle_on_page(pdf, pdf_box_out ,n_page,  king_pink)
