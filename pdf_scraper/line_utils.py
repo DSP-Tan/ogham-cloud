@@ -1,6 +1,7 @@
-import numpy as np 
+import numpy as np
 import pandas as pd
 import re
+from scipy.stats import mode
 
 def get_mode_font(fonts):
     font_counts = np.unique(fonts,return_counts=True)
@@ -23,13 +24,13 @@ def get_common_font(fonts):
         common_font =common_font_elems(common_font,font)
     return "".join(common_font)
 
-    
+
 def get_line_text(line: dict) -> str:
     return "".join( [span["text"] for span in line["spans"] ] )
 
 def get_line_words(line:dict) -> list:
     return re.findall(r'\b\w+\b', get_line_text(line) )
-    
+
 def line_is_empty(line):
     return all( [span["text"].isspace() for span in line["spans"]] )
 
@@ -40,7 +41,7 @@ def get_line_table(lines: dict):
     '''
     table=[f"{'x0':8} {'x1':8} {'y0':8} {'y1':8} {'dx':8} {'dy':8} {'fonts':36} {'beginning':25}", "--"*60]
     for line in lines:
-        font           = line["spans"][0]["font"] 
+        font           = line["spans"][0]["font"]
         font_list      = list(set(span["font"] for span in line["spans"] ) )
         x0, y0, x1, y1 = line['bbox']
         beginning      = line["spans"][0]["text"][:25]
@@ -53,6 +54,14 @@ def get_line_table(lines: dict):
 def print_line_table(lines:dict):
     print(get_line_table(lines))
     return None
+
+def get_all_lines(blocks: list[dict]):
+    lines=[]
+    for block in blocks:
+        if not block["type"]:
+            lines.extend(block["lines"])
+    return lines
+
 
 def get_line_df(lines):
     coords         = [line['bbox'] for line in lines]
@@ -69,17 +78,19 @@ def get_line_df(lines):
     h              = [coord[3]-coord[1] for coord in coords]
     text           = [get_line_text(line)       for line in lines]
     n_words        = [len(get_line_words(line)) for line in lines ]
+    font_size_list = [[span["size"] for span in line["spans"]  ]  for line in lines]
+    mode_font_size = [ mode([span["size"] for span in line["spans"]  ]).mode for line in lines ]
 
-    
-    data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,      
-    "common_font":common_font,"mode_font":mode_font,"n_words":n_words,"w":w,"h":h,"text":text}
+    data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,
+    "common_font":common_font,"mode_font":mode_font,"n_words":n_words,"w":w,"h":h,
+    "text":text, "font_sizes":font_size_list, "font_size":mode_font_size}
     return pd.DataFrame(data_dict)
 
 def get_bbox(lines):
     line_df = get_line_df(lines)
     x0 = line_df.x0.min()
-    y0 = line_df.y0.min() 
-    x1 = line_df.x1.max() 
+    y0 = line_df.y0.min()
+    x1 = line_df.x1.max()
     y1 = line_df.y1.max()
     return tuple( float(i) for i in [x0,y0,x1,y1] )
 
@@ -91,7 +102,7 @@ def count_vert_space_discont(lines):
     df = get_line_df(lines)
     dLs = np.array(df.dL[:-1])
     median = np.median(df.dL[:-1])
-    
+
     count=0
     for i, val in enumerate(dLs):
         temp = np.delete(dLs, i, 0)
