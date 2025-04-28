@@ -69,9 +69,19 @@ def check_year_fills(examDir: Path):
     bigDf = pd.concat(dfs)
     return bigDf
 
+def in_the_pink(bbox: tuple, fill_rectangle: Rect):
+    x0, y0, x1, y1 = bbox
+    block_rect = Rect(x0,y0,x1,y1)
+    return  fill_rectangle.contains(block_rect)
 
 
-
+def approx_fill(fill1, fill2):
+    r1,b1,g1 = fill1
+    r2,b2,g2 = fill2
+    red   = r1 < r2 -0.004 and r1 > r2 + 0.004
+    blue  = b1 < b2 -0.004 and b1 > b2 + 0.004
+    green = g1 < g2 -0.004 and g1 > g2 + 0.004
+    return red and blue and green
 # To Do: confirm the colours for a variety of papers.
 # Here is an example of where you could get the colour for the pink background colour.
 # drawings  = page.get_drawings()
@@ -99,9 +109,10 @@ def get_pink_boundary(drawings, pink_fill):
 
     filtered_pinks = [p for p in pinks if not in_the_stink(p)]
 
-    x0 = min([p['rect'].x0 for p in filtered_pinks] )
+    # we subtract (add) 4 to x0 (x1) to account for leading (trailing) whitespace
+    x0 = min([p['rect'].x0 for p in filtered_pinks] ) - 4
     y0 = min([p['rect'].y0 for p in filtered_pinks] )
-    x1 = max([p['rect'].x1 for p in filtered_pinks] )
+    x1 = max([p['rect'].x1 for p in filtered_pinks] ) + 4
     y1 = max([p['rect'].y1 for p in filtered_pinks] )
     king_pink = fitz.Rect(x0,y0,x1,y1)
 
