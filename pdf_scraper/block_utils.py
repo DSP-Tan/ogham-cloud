@@ -1,5 +1,6 @@
 from pdf_scraper.clustering.customCluster import reblock_lines
 from pdf_scraper.line_utils import line_is_empty, get_bbox, get_line_df, count_vert_space_discont
+from pdf_scraper.draw_utils import in_the_pink
 from fitz import Rect
 from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks
@@ -8,9 +9,9 @@ import numpy as np
 def clean_blocks(blocks: list[dict]):
     '''
     This function removes all empty blocks from a list of blocks, and within a given
-    block it removes all empty lines. Empty here means consisting of only empty space text. 
+    block it removes all empty lines. Empty here means consisting of only empty space text.
 
-    It will not do anything to image blocks. 
+    It will not do anything to image blocks.
     '''
     non_empty_blocks      = [block for block in blocks if not is_empty_block(block)]
     non_empty_text_blocks = [block for block in blocks if not block["type"]]
@@ -20,10 +21,10 @@ def clean_blocks(blocks: list[dict]):
 
 def get_block_text(block_dict: dict ):
     '''
-    For a given block dictionary element, as output by Page.get_text("dict")["blocks"], this 
-    function will return the text of all the lines, joined by a "\n", and with the spans on 
-    each line joined with a space. 
-    
+    For a given block dictionary element, as output by Page.get_text("dict")["blocks"], this
+    function will return the text of all the lines, joined by a "\n", and with the spans on
+    each line joined with a space.
+
     The result is one string with newline separtaed lines and space
     separated spans.
     '''
@@ -37,12 +38,13 @@ def get_block_table(blocks: list[dict]):
     This function outputs a string which will list all the blocks in the page along with their coordinates, their
     type, and the first word if it's a text block.
     '''
-    table=[f"{'x0':8} {'x1':8} {'y0':8} {'y1':8} {'dx':8} {'dy':8} {'type':5} {'number':7} {'first_word':10}", "--"*40]
+    table=[f"{'x0':8} {'x1':8} {'y0':8} {'y1':8} {'dx':8} {'dy':8} {'type':5} {'number':7} {'n_lines':7} {'first_word':10}", "--"*40]
     for block in blocks:
-        type = "img" if block["type"] else "txt" 
+        type = "img" if block["type"] else "txt"
         x0, y0, x1, y1 = block['bbox']
         beginning=get_block_text(block)[:11] if type =="txt" else "--"
-        line=f"{x0:<8.2f} {x1:<8.2f} {y0:<8.2f} {y1:<8.2f} {x1-x0:<8.2f} {y1-y0:<8.2f} {type:5} {block['number']:<7} {beginning:<10}"
+        n_lines = len(block["lines"])        if type =="txt" else 0
+        line=f"{x0:<8.2f} {x1:<8.2f} {y0:<8.2f} {y1:<8.2f} {x1-x0:<8.2f} {y1-y0:<8.2f} {type:5} {block['number']:<7} {n_lines:<7} {beginning:<10}"
         table.append(line)
     table.extend( ["--"*40,"\n"*2] )
     block_table = "\n".join(table)
@@ -52,10 +54,6 @@ def print_block_table(blocks: list[dict]):
     print(get_block_table(blocks))
     return None
 
-def in_the_pink(block: dict, king_pink: Rect):
-    x0, y0, x1, y1 = block['bbox']
-    block_rect = Rect(x0,y0,x1,y1)
-    return  king_pink.contains(block_rect)
 
 def isColumnSize(block: dict, page_width:float):
     x0, y0, x1, y1 = block['bbox']
@@ -73,20 +71,20 @@ def is_empty_block(block: dict):
 # with antoher kind of x0
 # - If you have short headers this will select them.
 # - You should really put in a check on the common font of all lines within the pink.
-# - This would mean writing a function which gets all blocks in the pink, concatenates their lines, and gets their common font. 
-#   - Then take median common font or mode common font. 
+# - This would mean writing a function which gets all blocks in the pink, concatenates their lines, and gets their common font.
+#   - Then take median common font or mode common font.
 def identify_dual_column(blocks: list[dict], king_pink: Rect):
 
     pink_width      = king_pink.x1 - king_pink.x0
-    possiBlocks     = [block for block in blocks      if isColumnSize(    block,pink_width) ]   
-    possiPinks      = [block for block in possiBlocks if in_the_pink(     block,king_pink) ]   
+    possiBlocks     = [block for block in blocks      if isColumnSize(    block,pink_width) ]
+    possiPinks      = [block for block in possiBlocks if in_the_pink(     block["bbox"],king_pink) ]
     dual_col_blocks = [block for block in possiPinks  if not is_empty_block(block)]
 
     return dual_col_blocks
 
 
 def sort_dual_column_blocks(blocks: list[dict]):
-    coords = [block['bbox'] for block in blocks ] 
+    coords = [block['bbox'] for block in blocks ]
     x0_min = min(coord[0] for coord in coords)
     x0_max = max(coord[0] for coord in coords)
     x1_min = min(coord[1] for coord in coords)
@@ -99,7 +97,7 @@ def sort_dual_column_blocks(blocks: list[dict]):
         dl = x0-x0_min
         dr = x0-x0_max
         block["col"] = 0 if abs(dl) < abs(dr) else 1
-    
+
     col_ordered = sorted(vert_ordered,key = lambda x: x['col'])
 
     return col_ordered
@@ -119,14 +117,26 @@ def find_width_peaks(lines):
     peaks, _ = find_peaks(kde_vals, prominence = 0.0001)
     return peaks
 
+def in_and_out_of_pink(bbox: tuple, king_pink: Rect):
+    '''
+    Returns True if there is a block which has a bounding box which overlaps
+    but is not contained completely inside of the pink.
+
+    Such blocks should not exist and this is definitely a clumped block.
+    '''
+    x0, y0, x1, y1 = bbox
+    in_x = (x0 > king_pink.x0 and x1 < king_pink.x1)
+    in_and_out_y = (y0 > king_pink.y0 and y1 > king_pink.y1)
+    return in_x and in_and_out_y
 
 def detect_bad_block(block: dict,king_pink: Rect):
     '''
     This function
     '''
     lines=[line for line in block["lines"] if not line_is_empty(line)]
+    bbox = block["bbox"]
     df = get_line_df(lines)
-    pink = in_the_pink(block, king_pink)
+    pink = in_the_pink(bbox, king_pink) or in_and_out_of_pink(bbox,king_pink)
     n_base_fonts  = len(df.common_font.value_counts()) >= 2
     n_width_modes = len(find_width_peaks(lines)) >=2
     space_discont = count_vert_space_discont(lines) >=1
@@ -188,14 +198,14 @@ def rebox_blocks(blocks: list[dict]):
     This will loop through all blocks, and set the bbox of the blocks according
     to the bbox of the lines. This is useful if for example you have removed all
     empty lines from the block and want the bbox to reflect only actual text, and
-    not just empty newlines. 
+    not just empty newlines.
     '''
     for block in blocks:
         if block["type"]:
             continue
         block["bbox"] = get_bbox(block["lines"])
     return blocks
-    
+
 
 def preproc_blocks(blocks: list[dict], king_pink: Rect):
     blocks = clean_blocks(blocks)
@@ -228,11 +238,11 @@ def preproc_blocks(blocks: list[dict], king_pink: Rect):
 
 def col_block_is_too_big(block:dict, king_pink: Rect):
     '''
-    This function is to identify if amongst the dual column blocks that have been 
-    identified, there is one that is too large and could be broken up. 
+    This function is to identify if amongst the dual column blocks that have been
+    identified, there is one that is too large and could be broken up.
     '''
     lines=[line for line in block["lines"] if not line_is_empty(line)]
-    pink = in_the_pink(block, king_pink)
+    pink = in_the_pink(block["bbox"], king_pink)
     n_lines  = len(lines) >= 3
     space_discont = count_vert_space_discont(lines) >1
     too_big = all([n_lines, space_discont])
