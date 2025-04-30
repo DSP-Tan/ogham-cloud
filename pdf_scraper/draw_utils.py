@@ -2,6 +2,7 @@ import fitz
 from fitz import Rect
 import pandas as pd
 from pathlib import Path
+import numpy as np
 
 def draw_rectangle_on_page(pdf_path: str, output_pdf: str,  page_index: int, rect: Rect):
     """
@@ -74,19 +75,38 @@ def in_the_pink(bbox: tuple, fill_rectangle: Rect):
     block_rect = Rect(x0,y0,x1,y1)
     return  fill_rectangle.contains(block_rect)
 
+def get_fill_colours(doc):
+    '''
+    This checks the pages of english paper 1 where the texts are, and finds
+    all the unique colours used for the bounding boxes of the articles.
+    '''
+    fill_colours=[]
+    for i in range(1,7):
+        page_drawings   = doc[i].get_drawings()
+        fill_df = get_fill_df(page_drawings)
+        if len(fill_df)==0:
+            continue
+        fill_colour      = fill_df.fill.mode().values[0]
+        fill_colours.append(fill_colour)
+
+    return np.unique(fill_colours,axis=0)
 
 def approx_fill(fill1, fill2):
+    '''
+    This will check if a fill colour is equal to another with a 0.004 tolerance
+    for each colour chanel.
+    '''
     r1,b1,g1 = fill1
     r2,b2,g2 = fill2
-    red   = r1 < r2 -0.004 and r1 > r2 + 0.004
-    blue  = b1 < b2 -0.004 and b1 > b2 + 0.004
-    green = g1 < g2 -0.004 and g1 > g2 + 0.004
+    red   = r1 > r2 -0.004 and r1 < r2 + 0.004
+    blue  = b1 > b2 -0.004 and b1 < b2 + 0.004
+    green = g1 > g2 -0.004 and g1 < g2 + 0.004
     return red and blue and green
 # To Do: confirm the colours for a variety of papers.
 # Here is an example of where you could get the colour for the pink background colour.
 # drawings  = page.get_drawings()
 # pink_fill = drawings[0]['fill']
-def get_pink_boundary(drawings, pink_fill):
+def get_pink_boundary(drawings, pink_fills):
     """
     Return one rectangle pink fill box in the page, by joining together other overlapping rectangle pink boxes.
 
@@ -96,7 +116,7 @@ def get_pink_boundary(drawings, pink_fill):
     """
     # To Do:
     # Only look at pink fill objects which are rectangles
-    pinks = [d for d in drawings if d["type"] == "f" and d["fill"]==pink_fill ]
+    pinks = [d for d in drawings if d["type"] == "f" and d["fill"] in pink_fills ]
 
     if not pinks:
         return None
