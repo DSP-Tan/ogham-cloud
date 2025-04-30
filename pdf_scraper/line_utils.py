@@ -86,6 +86,22 @@ def get_line_df(lines):
     "text":text, "font_sizes":font_size_list, "font_size":mode_font_size}
     return pd.DataFrame(data_dict)
 
+def get_clean_bins(x:pd.Series,bin_width:float):
+    '''
+    The purpose of this function is to create bints for the x0 and x1 values found
+    in line df. So we will pass df.x0 or df.x1 to it, and it will return to us binned
+    values of the x0 and x1. These can be used to see if a line is a member of a certain
+    column or not.
+    '''
+    min = x.min()
+    max = x.max()
+
+    bins = np.arange(start=min-bin_width/2, stop=max + 2*bin_width, step=bin_width)
+
+    x_binned = pd.cut(x, bins=bins).apply(lambda i: i.mid).value_counts()
+
+    return x_binned[x_binned !=0]
+
 def get_bbox(lines):
     line_df = get_line_df(lines)
     x0 = line_df.x0.min()
