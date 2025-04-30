@@ -51,3 +51,24 @@ if there is a short enough title in the pink box.
 
 Once the blocks are cleaned of empty lines, you can run over them and do a splitting anywhere there is
 a discontinuity. 
+
+
+# Using decision tree to clasify lines
+
+We have already tried to use clustering to limited effect. But this however was when we were still focusing
+on blocked text. 
+
+1. Get for each page all lines. Maybe get all lines for all pages. 
+
+2. Get the line_df, enriched with page number, as this is informative. 
+
+3. Label the lines according to their entities for 3-5 exams. 
+
+4. Train decision tree on this. 
+
+5. Use decision tree to predict for other papers. 
+
+- This is better as we simply let the decision tree learn all these rules
+  and exceptions that we are running up against in the traditional programming approach. o
+
+- This can then be more generalisable for the other papers. 
