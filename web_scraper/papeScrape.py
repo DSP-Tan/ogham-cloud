@@ -40,6 +40,7 @@ if __name__=="__main__":
     exam     = "Leaving Certificate"
     dl_dir   = Path.home() / 'Downloads'
     exam_dir = Path(__file__).parent.parent / "Exams"
+    exam_dir.mkdir(parents=True, exist_ok=True)
     #browse_exe = Path(os.environ["BROWSER"])
 
 
