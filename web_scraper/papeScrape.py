@@ -24,7 +24,7 @@ def find_papers(driver):
 
 
 if __name__=="__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print("Provide year range and subject:")
         print(f"Example use:\npython {sys.argv[0]} 2014 2016 History")
         sys.exit(1)
