@@ -44,7 +44,7 @@ than the current list comprehension that you use.
 # Short cuts taken
 
 The major weakness of this code is how the dual column blocks are identified and sorted. This will break
-if there is a short enough title in the pink box. 
+if there is a short enough title in the pink box. (It does.)
 
 
 # Bad blocking
