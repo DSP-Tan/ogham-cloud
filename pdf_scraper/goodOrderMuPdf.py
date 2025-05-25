@@ -4,8 +4,8 @@ from fitz import Rect
 from itertools import takewhile
 from itertools import dropwhile
 from pdf_scraper.block_utils import get_block_text, print_block_table, detect_bad_block
-from pdf_scraper.block_utils import preproc_blocks, identify_dual_column, sort_dual_column_blocks
-from pdf_scraper.draw_utils  import get_pink_boundary, draw_rectangle_on_page, get_fill_df
+from pdf_scraper.block_utils import preproc_blocks, get_dual_col_blocks, sort_dual_column_blocks
+from pdf_scraper.draw_utils  import get_pink_boundary, draw_rectangle_on_page, get_fill_df, get_fill_colours
 
 
 
@@ -30,7 +30,7 @@ def parse_page(page, king_pink=None):
         return "\n\n".join(txt_img_blocks)
 
 
-    dual_col_blocks   = identify_dual_column(blocks, king_pink)
+    dual_col_blocks   = get_dual_col_blocks(blocks, king_pink)
     # Somtimes there is an enclosing pink box but still no dual column.
     if not dual_col_blocks:
         txt_img_blocks = [get_block_text(block) if block["type"]==0 else img_txt for block in blocks]
@@ -56,12 +56,13 @@ def parse_page(page, king_pink=None):
 
     txt_img_blocks = [get_block_text(block) if block["type"]==0 else img_txt for block in final_blocks ]
     page_text = "\n\n".join(txt_img_blocks)
+    import ipdb; ipdb.set_trace()
 
     return page_text
 
 if __name__=="__main__":
     # This is LC, english, higher level, Paper 1, English Version,  2024
-    year=2015
+    year=2016
     level = "AL"
     fname =  f"LC002ALP100EV_{year}.pdf"
     examDir = Path(__file__).parent.parent / "Exams" / "english" / level
@@ -75,16 +76,17 @@ if __name__=="__main__":
 
     page2_drawings   = doc[1].get_drawings()
     fill_colour      = get_fill_df(page2_drawings).fill.mode().values[0]
+    fill_colours     = get_fill_colours(doc)
 
     out_dir = "scrapedPages"
     for n_page, page in enumerate(doc):
-        if n_page !=1:
+        if n_page !=5:
             continue
         print(f"Page {n_page+1}\n")
         print(f"--"*20)
         page_draws = page.get_drawings()
 
-        king_pink = get_pink_boundary(page_draws,fill_colour)
+        king_pink = get_pink_boundary(page_draws,fill_colours)
         if king_pink:
             pdf_box_out = Path(__file__).parent / out_dir / f"bound_box_page_{n_page+1}.pdf"
             draw_rectangle_on_page(pdf, pdf_box_out ,n_page,  king_pink)
