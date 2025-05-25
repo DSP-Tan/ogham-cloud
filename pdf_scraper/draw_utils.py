@@ -3,6 +3,7 @@ from fitz import Rect
 import pandas as pd
 from pathlib import Path
 import numpy as np
+from typing import Iterable, Tuple, List, Optional
 
 def draw_rectangle_on_page(pdf_path: str, output_pdf: str,  page_index: int, rect: Rect):
     """
@@ -77,8 +78,8 @@ def in_the_pink(bbox: tuple, fill_rectangle: Rect):
 
 def get_fill_colours(doc):
     '''
-    This checks the pages of english paper 1 where the texts are, and finds
-    all the unique colours used for the bounding boxes of the articles.
+    This checks the pages of english paper 1 where the texts are (page 2 to 8), 
+    and finds all the unique colours used for the bounding boxes of the articles.
     '''
     fill_colours=[]
     for i in range(1,7):
@@ -106,16 +107,17 @@ def approx_fill(fill1, fill2):
 # Here is an example of where you could get the colour for the pink background colour.
 # drawings  = page.get_drawings()
 # pink_fill = drawings[0]['fill']
-def get_pink_boundary(drawings, pink_fills):
+def get_pink_boundary(drawings:List[dict], pink_fills: Iterable[Tuple[float, float, float]] )-> Optional[fitz.Rect]:
     """
     Return one rectangle pink fill box in the page, by joining together other overlapping rectangle pink boxes.
 
     :param drawings: List of drawing objects from get_drawings()
-    :param pink_fill: tuple specifying pink colour. (1.0, 0.8980000019073486, 0.9490000009536743) for 2024 P1
+    :param pink_fills: iterable of tuples specifying pink colour. [(1.0, 0.8980000019073486, 0.9490000009536743)] for 2024 P1
     :return: fitz.Rect of pink boundary or None
     """
     # To Do:
     # Only look at pink fill objects which are rectangles
+    # Use "approx_fill" to compare fills rather than just using in pink_fills to search for exact copies in the list.
     pinks = [d for d in drawings if d["type"] == "f" and d["fill"] in pink_fills ]
 
     if not pinks:
