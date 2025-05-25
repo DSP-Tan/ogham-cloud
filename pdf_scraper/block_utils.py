@@ -19,9 +19,52 @@ def clean_blocks(blocks: list[dict]):
         block["lines"] = [line for line in block["lines"] if not line_is_empty(line)]
     return non_empty_blocks
 
+
 def get_block_text(block_dict: dict ):
     '''
-    For a given block dictionary element, as output by Page.get_text("dict")["blocks"], this
+    For a given block dictionary element, as output by Page.get_text("dict")["blocks"][0], this
+    function will return the text of all the lines, joined by a "\n", and with the spans on
+    each line joined with a space.
+
+    The result is one string with newline separtaed lines and space
+    separated spans.
+    '''
+    lines     = block_dict["lines"]
+    line_df   = get_line_df(lines)
+    line_df.h  = line_df.h.map(lambda x: round(x,2))
+    h = line_df.h.median()
+
+    if len(lines)>1:
+        line_df.dL = line_df.dL.map(lambda x: round(x,2))
+        dL = line_df.dL.median()
+    else:
+        dL = h*1.04
+    tol = 0.001
+
+    block_text= " ".join([ span["text"] for span in lines[0]["spans"] ])
+    for i, line in enumerate(lines[1:]):
+        line_text = " ".join([ span["text"] for span in line["spans"] ])
+
+        x00,y00,x01,y01   = lines[i]["bbox"]
+        x10, y10,x11,y11  = line["bbox"]
+        dy = abs(y10 - y00)
+        if dy <= dL + tol and dy >= dL -tol: 
+            block_text += "\n" + line_text
+        elif dy <= 2*dL + tol and dy >= 2*dL -tol: 
+            block_text += "\n\n" + line_text 
+        elif dy <=  tol: 
+            block_text += " " + line_text
+        else: 
+            block_text += "\n" + line_text
+        # have elif space=one line ==> one space
+        # elif space =two lines    ==> two spaces
+
+    return block_text
+
+def get_block_text_old(block_dict: dict ):
+    '''
+    We'll hold on to this for a while then delete it later.
+    For a given block dictionary element, as output by Page.get_text("dict")["blocks"][0], this
     function will return the text of all the lines, joined by a "\n", and with the spans on
     each line joined with a space.
 
@@ -73,15 +116,23 @@ def is_empty_block(block: dict):
 # - You should really put in a check on the common font of all lines within the pink.
 # - This would mean writing a function which gets all blocks in the pink, concatenates their lines, and gets their common font.
 #   - Then take median common font or mode common font.
-def identify_dual_column(blocks: list[dict], king_pink: Rect):
+def get_dual_col_blocks(blocks: list[dict], king_pink: Rect):
 
+    return [block for block in blocks if identify_dual_column(block, king_pink)]
+
+def identify_dual_column(block: dict, king_pink: Rect):
+
+    x0, y0, x1, y1  = block["bbox"]
     pink_width      = king_pink.x1 - king_pink.x0
-    possiBlocks     = [block for block in blocks      if isColumnSize(    block,pink_width) ]
-    possiPinks      = [block for block in possiBlocks if in_the_pink(     block["bbox"],king_pink) ]
-    dual_col_blocks = [block for block in possiPinks  if not is_empty_block(block)]
+    pink_centre     = (king_pink.x0+king_pink.x1)/2
+    line_centre     = (x0+x1)/2
 
-    return dual_col_blocks
+    non_empty       = not is_empty_block(block)
+    pink            = in_the_pink(     block["bbox"],king_pink) 
+    col_sized       = isColumnSize(block, pink_width) 
+    not_centred     = (line_centre < pink_centre-12) or (line_centre > pink_centre+12)
 
+    return non_empty and pink and col_sized and not_centred
 
 def sort_dual_column_blocks(blocks: list[dict]):
     coords = [block['bbox'] for block in blocks ]
