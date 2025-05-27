@@ -9,12 +9,12 @@ import numpy as np
 def clean_blocks(blocks: list[dict]):
     '''
     This function removes all empty blocks from a list of blocks, and within a given
-    block it removes all empty lines. Empty here means consisting of only empty space text.
+    block it removes all empty lines. Empty here means consisting of only white space text.
 
     It will not do anything to image blocks.
     '''
     non_empty_blocks      = [block for block in blocks if not is_empty_block(block)]
-    non_empty_text_blocks = [block for block in blocks if not block["type"]]
+    non_empty_text_blocks = [block for block in non_empty_blocks if not block["type"]]
     for block in non_empty_text_blocks:
         block["lines"] = [line for line in block["lines"] if not line_is_empty(line)]
     return non_empty_blocks
@@ -56,9 +56,8 @@ def get_block_text(block_dict: dict ):
             block_text += " " + line_text
         else: 
             block_text += "\n" + line_text
-        # have elif space=one line ==> one space
-        # elif space =two lines    ==> two spaces
-
+    if block_text.isspace():
+        return ""
     return block_text
 
 def get_block_text_old(block_dict: dict ):
@@ -106,7 +105,9 @@ def isColumnSize(block: dict, page_width:float):
 def is_empty_block(block: dict):
     if block["type"]:
         return 0
-    return 0 if get_block_text(block) else 1
+    empty_lines = [line_is_empty(line) for line in block["lines"]]
+
+    return all(empty_lines )
 
 
 # To Do: you should also check to see that there are some blocks in the pink of column size at the
