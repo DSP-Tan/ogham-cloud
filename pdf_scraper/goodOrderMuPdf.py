@@ -56,7 +56,6 @@ def parse_page(page, king_pink=None):
 
     txt_img_blocks = [get_block_text(block) if block["type"]==0 else img_txt for block in final_blocks ]
     page_text = "\n\n".join(txt_img_blocks)
-    import ipdb; ipdb.set_trace()
 
     return page_text
 
@@ -80,8 +79,8 @@ if __name__=="__main__":
 
     out_dir = "scrapedPages"
     for n_page, page in enumerate(doc):
-        if n_page !=5:
-            continue
+        #if n_page !=5:
+        #    continue
         print(f"Page {n_page+1}\n")
         print(f"--"*20)
         page_draws = page.get_drawings()
