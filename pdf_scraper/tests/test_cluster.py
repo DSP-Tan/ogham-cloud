@@ -1,24 +1,29 @@
 import fitz, itertools
 import pandas as pd
 import numpy  as np
-from line_utils   import line_is_empty, get_line_df
-from cluster_utils import preproc, cluster_optimise
-from utils        import *
+from pdf_scraper.line_utils               import line_is_empty, get_line_df
+from pdf_scraper.doc_utils                import open_exam
+from pdf_scraper.clustering.cluster_utils import preproc, cluster_optimise
     
 from sklearn.cluster import KMeans
 
-if __name__=="__main__":
-    pdf_file         = "test_pdfs/LC002ALP100EV_2024.pdf"
-    page_dict        = fitz.open(pdf_file)[3].get_text("dict",sort=True)
+def test_standard_cluster():
+    """
+    This test checks to see that the standard cluster_optimise function, which does a 
+    normal Kmeans clustering for 2 clusters, agrees with the result obtained by using
+    SKlearns KMeans class.
+    """
+    doc              = open_exam(2024, "English", "al", 1)
+    page_dict        = doc[3].get_text("dict",sort=True)
     block            = page_dict["blocks"][6]
     lines            = [line for line in block["lines"] if not line_is_empty(line)]
     
     pd.set_option("display.float_format", "{:.2f}".format)
     df        = get_line_df(lines)
-    
+
     # These cols of the df are not informative for text-block clustering.
-    bad_nums = ["n_spans","dL","x1","n_words","h","x0","y1"]
-    bad_cats = ["font_list","text","mode_font"]
+    bad_nums = ["n_spans","dL","x1","n_words","h","x0","y1","font_size"]
+    bad_cats = ["font_list","text","mode_font","font_sizes"]
     
     X_df = preproc(bad_nums,bad_cats, df)
     X    = np.array(X_df)
@@ -40,7 +45,13 @@ if __name__=="__main__":
     # Kmeans sklearn
     kmeans = KMeans(n_clusters=2, random_state=42,init=init_centroids, n_init="auto",verbose=True)
     cluster_pred = kmeans.fit_predict(X)
-    assert all(cluster_pred==labels)
     print(labels)
+
+    assert all(cluster_pred==labels)
+
+if __name__=="__main__":
+    test_standard_cluster()
+
+
 
 
