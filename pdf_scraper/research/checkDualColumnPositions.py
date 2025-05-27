@@ -45,6 +45,8 @@ for year in range(2011,2023):
         if not pink_lines:
             continue
         pink_df          = get_line_df(pink_lines)
+        pink_df.x0 = pink_df.x0.map(lambda x: round(x))
+        pink_df.x1 = pink_df.x1.map(lambda x: round(x))
 
 
         counts    = pink_df.x0.value_counts()
