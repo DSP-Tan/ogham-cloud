@@ -31,7 +31,7 @@ def get_line_text(line: dict) -> str:
 def get_line_words(line:dict) -> list:
     return re.findall(r'\b\w+\b', get_line_text(line) )
 
-def line_is_empty(line):
+def line_is_empty(line: dict) -> bool:
     return all( [span["text"].isspace() for span in line["spans"]] )
 
 def get_line_table(lines: dict):
