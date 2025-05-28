@@ -1,9 +1,7 @@
 from pdf_scraper.doc_utils   import open_exam
-from pdf_scraper.block_utils import is_empty_block, clean_blocks
-from pdf_scraper.line_utils import get_line_text
+from pdf_scraper.block_utils import is_empty_block, clean_blocks, get_block_text
+from pdf_scraper.line_utils import get_line_text, line_is_empty
 
-
-    
 
 def test_empty_block():
     """
@@ -44,25 +42,35 @@ def test_clean_blocks_line_removal():
     need to be removed so that the correct visual position of that text block may
     be achieved.
     """
-    doc = open_exam(2024, "English", "AL", 1)
-    page = doc[1]
-    page_dict  = page.get_text("dict",sort=True)
-    blocks    = page_dict["blocks"]
-    non_empty_blocks =[block for block in blocks if not is_empty_block(block)]
+    def clean_block_page_year( year,  n_page,n_block):
+        """
+        This can be used to check that the function clean_blocks functions correctly
+        on blocks with at least two leading empty lines. Which is a common occurence across
+        pdfs.
+        """
+        doc = open_exam(year, "English", "AL", 1)
+        page = doc[n_page]
+        page_dict  = page.get_text("dict",sort=True)
+        blocks     = page_dict["blocks"]
+        non_empty_blocks =[block for block in blocks if not is_empty_block(block)]
+        
+        block = non_empty_blocks[n_block]
+        empty_lines = [line for line in block["lines"] if line_is_empty(line) ]
+        assert len(empty_lines) > 0
 
-    # looking at the lines of the 4th non empty block, we will see it begins with several
-    # empty lines (\n)
-    # print_block_table(non_empty_blocks)
-    # print_line_table(non_empty_blocks[3]["lines"])
-    
-    assert get_line_text(non_empty_blocks[3]["lines"][0]).isspace()
-    assert get_line_text(non_empty_blocks[3]["lines"][1]).isspace()
+        cleaned_blocks = clean_blocks(non_empty_blocks)
+        clean_block = cleaned_blocks[n_block]
+        empty_lines = [line for line in clean_block["lines"] if line_is_empty(line) ]
+        assert len(empty_lines) == 0
 
-    cleaned_blocks = clean_blocks(non_empty_blocks)
 
-    assert not get_line_text(cleaned_blocks[3]["lines"][0]).isspace()
-    assert not get_line_text(cleaned_blocks[3]["lines"][1]).isspace()
+    clean_block_page_year(2024, 1, 3)
+    clean_block_page_year(2020, 0, 6)
+    clean_block_page_year(2020, 4, 1)
+
+
     
 
 if __name__=="__main__":
-    test_empty_block()
+    #test_empty_block()
+    test_clean_blocks_line_removal()
