@@ -1,4 +1,5 @@
 import fitz
+import sys
 from pathlib import Path
 from fitz import Rect
 from itertools import takewhile
@@ -61,7 +62,10 @@ def parse_page(page, king_pink=None):
 
 if __name__=="__main__":
     # This is LC, english, higher level, Paper 1, English Version,  2024
-    year=2016
+    if len(sys.argv) < 2:
+        print("Need to enter year to scrape:")
+        sys.exit(1)
+    year=int(sys.argv[1])
     level = "AL"
     fname =  f"LC002ALP100EV_{year}.pdf"
     examDir = Path(__file__).parent.parent / "Exams" / "english" / level
@@ -79,8 +83,8 @@ if __name__=="__main__":
 
     out_dir = "scrapedPages"
     for n_page, page in enumerate(doc):
-        #if n_page !=5:
-        #    continue
+        if n_page !=0:
+            continue
         print(f"Page {n_page+1}\n")
         print(f"--"*20)
         page_draws = page.get_drawings()
