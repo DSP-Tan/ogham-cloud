@@ -18,3 +18,12 @@ def open_exam(year:int, subject: str, level: str, paper=0):
     pdf_file = examDir / fname
 
     return fitz.open(pdf_file)
+
+def extract_and_print_page(input_pdf, output_pdf, n_page):
+    doc = fitz.open(input_pdf)
+
+    new_doc = fitz.open()
+    new_doc.insert_pdf(doc, from_page=n_page-1, to_page=n_page-1)  # 7th page (0-based index)
+    new_doc.save(output_pdf)
+    new_doc.close()
+    doc.close()
