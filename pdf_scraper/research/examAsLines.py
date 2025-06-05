@@ -22,16 +22,17 @@ def get_doc_line_df(doc):
         page_df["page"] = i+1
         page_df.sort_values("y0",inplace=True)
         dfs.append(page_df)
-    grand_df = pd.concat(dfs,ignore_index=True)
-    grand_df["dual_col"]=0
+    doc_df = pd.concat(dfs,ignore_index=True)
+    doc_df["dual_col"]=0
 
-    return grand_df
+    return doc_df
 
 
-def setDualCols(grand_df: pd.DataFrame, page_num:int, bookends: tuple[str]):
-    page_df = grand_df[grand_df.page==page_num].copy()
+def setDualCols(doc_df: pd.DataFrame, page_num:int, bookends: tuple[str]):
+    page_df = doc_df[doc_df.page==page_num].copy()
     print("here is page_df")
     print(page_df[["text","x0","y0"]].head(30))
+    print("--"*20, "\n\n")
     l1, r1, l2, r2 = bookends
     for line in bookends:
         print(page_df[page_df.text.str.contains(line)].index)
@@ -42,18 +43,23 @@ def setDualCols(grand_df: pd.DataFrame, page_num:int, bookends: tuple[str]):
     dual_cols.sort_values(["x0","y0"],inplace=True)
     dual_cols["dual_col"]=1
     print("Here are the dual cols")
+    print("top")
     print(dual_cols[["text","x0","y0"]].head(10))
+    print("bottom")
     print(dual_cols[["text","x0","y0"]].tail(10))
+    print("--"*20, "\n\n")
+    dual_cols.index = range(top, bottom + 1)
 
-    grand_df.loc[top:bottom] = dual_cols
+    doc_df.loc[top:bottom] = dual_cols
 
-    return grand_df
+    return doc_df
 
 year=2020
 doc = open_exam(year,"english","al",1)
-grand_df = get_doc_line_df(doc)
+doc_df = get_doc_line_df(doc)
 
-print(grand_df["text"].iloc[20:50].head(30))
+import ipdb; ipdb.set_trace()
+print(doc_df["text"].iloc[20:50].head(30))
 
 line_l1 = "I flit anxious"
 line_r1 = "yourself be led by the child"
@@ -61,6 +67,6 @@ line_lf = "imagination had not abandoned me"
 line_rf = "lose almost all the time"
 bookends = [line_l1,line_r1, line_lf, line_rf]
 
-grand_df = setDualCols(grand_df, 2, bookends)
+doc_df = setDualCols(doc_df, 2, bookends)
 
-print(grand_df["text"].iloc[20:50].head(30))
+print(doc_df["text"].iloc[20:50].head(30))
