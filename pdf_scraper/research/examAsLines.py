@@ -61,6 +61,7 @@ doc_df = get_doc_line_df(doc)
 import ipdb; ipdb.set_trace()
 print(doc_df["text"].iloc[20:50].head(30))
 
+# page 2
 line_l1 = "I flit anxious"
 line_r1 = "yourself be led by the child"
 line_lf = "imagination had not abandoned me"
@@ -70,3 +71,31 @@ bookends = [line_l1,line_r1, line_lf, line_rf]
 doc_df = setDualCols(doc_df, 2, bookends)
 
 print(doc_df["text"].iloc[20:50].head(30))
+
+# page 4
+line_l1 = "I had called upon my friend"
+line_r1 = "Peterson was left in possesion"
+line_lf = "streets. The roughs had also fled"
+line_rf = "to be deduced from his hat."
+bookends = [line_l1,line_r1, line_lf, line_rf]
+
+doc_df = setDualCols(doc_df, 4, bookends)
+
+# page 5
+line_l1 = "'You are certainly joking, Holmes"
+line_r1 = "ago, and has had no hat since, then he has"
+line_lf = "could afford to buy so expensive a hat three years"
+line_rf = "cheeks, dazed with astonishment"
+bookends = [line_l1,line_r1, line_lf, line_rf]
+
+doc_df = setDualCols(doc_df, 4, bookends)
+
+
+# page 6
+line_l1 = "My name is Ariadne"
+line_r1 = "Inflatable habitat modules"
+line_lf = "have as minimal an impact"
+line_rf = "rewards: Quiet. Beauty. Understanding"
+bookends = [line_l1,line_r1, line_lf, line_rf]
+
+doc_df = setDualCols(doc_df, 4, bookends)
