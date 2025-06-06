@@ -1,5 +1,8 @@
-from pathlib import Path
 import fitz
+import pandas as pd
+from pathlib import Path
+from pdf_scraper.block_utils import clean_blocks
+from pdf_scraper.line_utils import get_line_df
 
 subject_code = {
     "irish": "001",
@@ -19,7 +22,7 @@ def open_exam(year:int, subject: str, level: str, paper=0):
 
     return fitz.open(pdf_file)
 
-def extract_and_print_page(input_pdf, output_pdf, n_page):
+def extract_and_print_page(input_pdf:str, output_pdf:str, n_page:int):
     doc = fitz.open(input_pdf)
 
     new_doc = fitz.open()
@@ -27,3 +30,48 @@ def extract_and_print_page(input_pdf, output_pdf, n_page):
     new_doc.save(output_pdf)
     new_doc.close()
     doc.close()
+
+def get_doc_line_df(doc):
+    """
+    Returns a data frame of all lines in the document with the page numbers added
+    and all lines sorted vertically per page.
+    """
+    dfs = []
+    for i, page in enumerate(doc):
+        page_blocks  = page.get_text("dict",sort=True)["blocks"]
+
+        text_blocks  = [block for block in page_blocks if not block["type"]]
+        text_blocks = clean_blocks(text_blocks)
+
+        page_lines   = [ line for block in text_blocks for line in block["lines"]]
+        page_df = get_line_df(page_lines)
+        page_df["page"] = i+1
+        page_df.sort_values("y0",inplace=True)
+        dfs.append(page_df)
+    doc_df = pd.concat(dfs,ignore_index=True)
+    doc_df["dual_col"]=0
+
+    return doc_df
+
+def get_images(doc):
+    images = []
+    for i, page in enumerate(doc):
+        page_blocks  = page.get_text("dict",sort=True)["blocks"]
+
+        image_blocks = [block for block in page_blocks if     block["type"]]
+        for image_block in image_blocks:
+            image_block["page"]= i+1
+
+        images.extend(image_blocks)
+
+    if len(images) > 500:
+        images=filter_images(images)
+
+    return images
+
+def filter_images(images):
+    def is_point_image(img, threshold=5):
+        x0, y0, x1, y1 = img["bbox"]
+        return (x1 - x0) < threshold and (y1 - y0) < threshold
+    #return [img for img in images if img["size"] > 2000 ]
+    return [img for img in images if not is_point_image(img) ]
