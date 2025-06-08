@@ -67,7 +67,7 @@ def get_line_df(lines):
     coords         = [line['bbox'] for line in lines]
     x0             = [coord[0] for coord in coords]
     y0             = [coord[1] for coord in coords]
-    dL             = [coords[i+1][1] - coords[i][1] for i in range(len(coords)-1)] + [np.nan]
+    dL             = [coords[i+1][1] - coords[i][1] for i in range(len(coords)-1)] + [np.nan] if lines else []
     x1             = [coord[2] for coord in coords]
     y1             = [coord[3] for coord in coords]
     n_spans        = [len(line["spans"]) for line in lines]
