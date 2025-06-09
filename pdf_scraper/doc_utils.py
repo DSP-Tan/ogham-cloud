@@ -1,8 +1,13 @@
 import fitz
 import pandas as pd
+import numpy as np
 from pathlib import Path
+from PIL import Image
+import io
 from pdf_scraper.block_utils import clean_blocks
-from pdf_scraper.line_utils import get_line_df
+from pdf_scraper.line_utils  import get_line_df
+from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
+from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips
 
 subject_code = {
     "irish": "001",
@@ -53,11 +58,6 @@ def get_doc_line_df(doc):
 
     return doc_df
 
-def filter_point_images(images):
-    def is_point_image(img, threshold=5):
-        x0, y0, x1, y1 = img["bbox"]
-        return (x1 - x0) < threshold and (y1 - y0) < threshold
-    return [img for img in images if not is_point_image(img) ]
 
 def get_images(doc):
     images = []
@@ -71,11 +71,18 @@ def get_images(doc):
 
         images.extend(image_blocks)
 
-    if len(images) > 500:
-        images=filter_point_images(images)
-
     return images
 
+def filter_images():
+    if len(images) > 100:
+        images=filter_point_images(images)
+    if len(images) > 100:
+        image_strips = get_stripped_images(images)
+        joined_image = stitch_strips(image_strips)
+        images.append(joined_image)
+        images=filter_horizontal_strips(images)
+        images.sort(key=lambda x: (x["page"], x["bbox"][1]))
+    return images
 
 def get_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict]:
     """
