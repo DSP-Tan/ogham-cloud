@@ -7,7 +7,7 @@ import io
 from pdf_scraper.block_utils import clean_blocks
 from pdf_scraper.line_utils  import get_line_df
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
-from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips
+from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips
 
 subject_code = {
     "irish": "001",
@@ -73,15 +73,11 @@ def get_images(doc):
 
     return images
 
-def filter_images():
+def filter_images(images):
     if len(images) > 100:
         images=filter_point_images(images)
     if len(images) > 100:
-        image_strips = get_stripped_images(images)
-        joined_image = stitch_strips(image_strips)
-        images.append(joined_image)
-        images=filter_horizontal_strips(images)
-        images.sort(key=lambda x: (x["page"], x["bbox"][1]))
+        images = reconstitute_strips(images)
     return images
 
 def get_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict]:
@@ -123,6 +119,8 @@ def get_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict]:
     # Captions to add manually
     # 2019 p6: 'Warstones\xa0Library\xa0'
     # 2014 p3: 'Canada by Richard Ford – book cover '
-    # 2013
+    # 2013 p4:
+    # 2013 p6:
+    # 2013 p7:
 
     return images
