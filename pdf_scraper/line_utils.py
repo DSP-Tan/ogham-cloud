@@ -170,7 +170,7 @@ def bbox_distance(bbox1, bbox2):
 
     return np.hypot(dx, dy)
 
-def closest_image(bbox, images, n_page):
+def closest_image(bbox:tuple[float,float,float,float], images:list[dict], n_page:int )-> tuple[dict,float]:
     dist = 100000
     page_images = [img for img in images if img["page"]==n_page]
     for image in page_images:
@@ -178,14 +178,22 @@ def closest_image(bbox, images, n_page):
         if bbox_dist < dist:
             closest=image
             dist   =bbox_dist
-    return (dist, image)
+    return (image, dist)
 
-def closest_line(bbox:tuple[float,float,float,float], doc_df: pd.DataFrame, n_page:int)->tuple[float,int]:
+def closest_line(bbox:tuple[float,float,float,float], doc_df: pd.DataFrame, n_page:int)->tuple[int,float]:
     """
-    Finds the closest bbox contained in doc_df to the given bbox.
+    Finds the closest bbox contained in doc_df to the given bbox, excluding exactly
+    overlapping bboxes.
     """
-    dists=doc_df[doc_df.page == n_page].apply(
+    right_page = doc_df.page == n_page
+    not_same   = (
+        ( doc_df.x0 != bbox[0] ) &
+        ( doc_df.y0 != bbox[1] ) &
+        ( doc_df.x1 != bbox[2] ) &
+        ( doc_df.y1 != bbox[3] )
+    )
+    dists=doc_df[right_page & not_same ].apply(
         lambda row: bbox_distance((row["x0"], row["y0"], row["x1"], row["y1"]), bbox),
         axis=1
-        )
-    return (dists.min(), dists.idxmin())
+    )
+    return (dists.idxmin(), dists.min() )
