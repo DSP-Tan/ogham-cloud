@@ -154,3 +154,38 @@ def find_width_peaks(lines):
     kde_vals = kde(x_grid)
     peaks, _ = find_peaks(kde_vals, prominence = 0.0001)
     return peaks
+
+
+def bbox_distance(bbox1, bbox2):
+    """
+    Calculates the minimum edge-to-edge distance between two bounding boxes.
+    Each box is in [x_min, y_min, x_max, y_max] format.
+    Returns 0 if they overlap or touch.
+    """
+    x_min1, y_min1, x_max1, y_max1 = bbox1
+    x_min2, y_min2, x_max2, y_max2 = bbox2
+
+    dx = max(x_min2 - x_max1, x_min1 - x_max2, 0)
+    dy = max(y_min2 - y_max1, y_min1 - y_max2, 0)
+
+    return np.hypot(dx, dy)
+
+def closest_image(bbox, images, n_page):
+    dist = 100000
+    page_images = [img for img in images if img["page"]==n_page]
+    for image in page_images:
+        bbox_dist = bbox_distance(bbox,image["bbox"])
+        if bbox_dist < dist:
+            closest=image
+            dist   =bbox_dist
+    return (dist, image)
+
+def closest_line(bbox:tuple[float,float,float,float], doc_df: pd.DataFrame, n_page:int)->tuple[float,int]:
+    """
+    Finds the closest bbox contained in doc_df to the given bbox.
+    """
+    dists=doc_df[doc_df.page == n_page].apply(
+        lambda row: bbox_distance((row["x0"], row["y0"], row["x1"], row["y1"]), bbox),
+        axis=1
+        )
+    return (dists.min(), dists.idxmin())
