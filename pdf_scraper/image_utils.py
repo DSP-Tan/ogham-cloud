@@ -1,6 +1,8 @@
-import numpy as np
+import numpy  as np
+import pandas as pd
 from PIL import Image
 import io
+import fitz
 
 def is_point_image(img, threshold=5):
     x0, y0, x1, y1 = img["bbox"]
@@ -75,3 +77,29 @@ def reconstitute_strips(image_blocks):
     filtered_blocks.append(stitched)
     filtered_blocks.sort(key=lambda x: (x["page"], x["bbox"][1]))
     return filtered_blocks
+
+def get_in_image_lines(doc_df: pd.DataFrame, image: dict) -> pd.Index:
+    img_rect = fitz.Rect(*image["bbox"])
+
+    overlap_mask = (
+        (doc_df["x1"] > img_rect.x0 + 0.2) &
+        (doc_df["x0"] < img_rect.x1) &
+        (doc_df["y1"] > img_rect.y0 + 0.2) &
+        (doc_df["y0"] < img_rect.y1) &
+        (doc_df["page"] == image["page"] )
+    )
+    return doc_df[overlap_mask].index
+
+def get_in_image_captions(doc_df: pd.DataFrame, image: dict) -> str:
+    """
+    Find all text contained within an image's bounding box.
+    """
+    indices = get_in_image_lines(doc_df, image)
+    overlapping_rows = doc_df.loc[indices].copy()
+
+    overlapping_rows = overlapping_rows.sort_values(by="y0")
+    lines = overlapping_rows.groupby("y0")["text"].apply(lambda x: " ".join(x.astype(str)))
+
+    caption = "\n".join(lines).strip()
+
+    return caption
