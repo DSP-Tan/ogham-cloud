@@ -162,11 +162,11 @@ def bbox_distance(bbox1, bbox2):
     Each box is in [x_min, y_min, x_max, y_max] format.
     Returns 0 if they overlap or touch.
     """
-    x_min1, y_min1, x_max1, y_max1 = bbox1
-    x_min2, y_min2, x_max2, y_max2 = bbox2
+    x0_1, y0_1, x1_1, y1_1 = bbox1
+    x0_2, y0_2, x1_2, y1_2 = bbox2
 
-    dx = max(x_min2 - x_max1, x_min1 - x_max2, 0)
-    dy = max(y_min2 - y_max1, y_min1 - y_max2, 0)
+    dx = max(x0_2 - x1_1, x0_1 - x1_2, 0)
+    dy = max(y0_2 - y1_1, y0_1 - y1_2, 0)
 
     return np.hypot(dx, dy)
 
