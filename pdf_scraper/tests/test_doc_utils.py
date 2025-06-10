@@ -1,4 +1,4 @@
-from pdf_scraper.doc_utils import open_exam, get_images, get_doc_line_df
+from pdf_scraper.doc_utils import open_exam, get_images, get_doc_line_df, filter_images
 from pdf_scraper.doc_utils import get_captions
 from fitz import Document
 
@@ -25,10 +25,16 @@ def test_get_images():
     check_year(2023,17)
     check_year(2003,4)
 
-def test_point_filter():
-    doc = open_exam(2006, "English", "AL", 1)
-    images = get_images(doc)
-    assert len(images)== 10
+def test_filter_images():
+    def check_filter(year, im_before, im_after):
+        doc = open_exam(year, "English", "AL", 1)
+        images = get_images(doc)
+        assert len(images)== im_before
+        images = filter_images(images)
+        assert len(images)== im_after
+    before = 136811
+    after  = 10
+    check_filter(2006,before,after)
 
 def test_get_captions():
     def check_nth_caption(year, expected_caption,n):
