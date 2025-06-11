@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import re
 from scipy.stats import mode
+from pdf_scraper.general_utils import bbox_distance, bbox_vert_dist
 
 def get_mode_font(fonts):
     font_counts = np.unique(fonts,return_counts=True)
@@ -156,20 +157,6 @@ def find_width_peaks(lines):
     return peaks
 
 
-def bbox_distance(bbox1, bbox2):
-    """
-    Calculates the minimum edge-to-edge distance between two bounding boxes.
-    Each box is in [x_min, y_min, x_max, y_max] format.
-    Returns 0 if they overlap or touch.
-    """
-    x0_1, y0_1, x1_1, y1_1 = bbox1
-    x0_2, y0_2, x1_2, y1_2 = bbox2
-
-    dx = max(x0_2 - x1_1, x0_1 - x1_2, 0)
-    dy = max(y0_2 - y1_1, y0_1 - y1_2, 0)
-
-    return np.hypot(dx, dy)
-
 def closest_image(bbox:tuple[float,float,float,float], images:list[dict], n_page:int )-> tuple[dict,float]:
     dist = 100000
     page_images = [img for img in images if img["page"]==n_page]
@@ -194,6 +181,24 @@ def closest_line(bbox:tuple[float,float,float,float], doc_df: pd.DataFrame, n_pa
     )
     dists=doc_df[right_page & not_same ].apply(
         lambda row: bbox_distance((row["x0"], row["y0"], row["x1"], row["y1"]), bbox),
+        axis=1
+    )
+    return (dists.idxmin(), dists.min() )
+
+def closest_vertical_line(bbox:tuple[float,float,float,float], df: pd.DataFrame, n_page:int)->tuple[int,float]:
+    """
+    Finds the closest bbox contained in Dataframe df to the given bbox, excluding exactly
+    overlapping bboxes.
+    """
+    right_page = df.page == n_page
+    not_same = ~(
+        (df.x0 == bbox[0]) &
+        (df.y0 == bbox[1]) &
+        (df.x1 == bbox[2]) &
+        (df.y1 == bbox[3])
+    )
+    dists=df[right_page & not_same ].apply(
+        lambda row: bbox_vert_dist((row["x0"], row["y0"], row["x1"], row["y1"]), bbox),
         axis=1
     )
     return (dists.idxmin(), dists.min() )
