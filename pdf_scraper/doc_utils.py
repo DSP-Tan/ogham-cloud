@@ -46,7 +46,7 @@ def get_doc_line_df(doc):
         page_blocks  = page.get_text("dict",sort=True)["blocks"]
 
         text_blocks  = [block for block in page_blocks if not block["type"]]
-        text_blocks = clean_blocks(text_blocks)
+        text_blocks  = clean_blocks(text_blocks)
 
         page_lines   = [ line for block in text_blocks for line in block["lines"]]
         page_df = get_line_df(page_lines)
@@ -88,14 +88,14 @@ def get_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict
     for image in images:
         if image["page"] == 1 or image["page"] >8:
             continue
-        img_rect = fitz.Rect(*image["bbox"])
+        rect = fitz.Rect(*image["bbox"])
 
         # Filter all potentially overlapping rows using bounding box logic
         overlap_mask = (
-            (doc_df["x1"] > img_rect.x0 + 0.2) &
-            (doc_df["x0"] < img_rect.x1) &
-            (doc_df["y1"] > img_rect.y0 + 0.2) &
-            (doc_df["y0"] < img_rect.y1) &
+            (doc_df["x1"] > rect.x0 + 0.2) &
+            (doc_df["x0"] < rect.x1) &
+            (doc_df["y1"] > rect.y0 + 0.2) &
+            (doc_df["y0"] < rect.y1) &
             (doc_df["page"] == image["page"] )
         )
         overlapping_rows = doc_df[overlap_mask]
