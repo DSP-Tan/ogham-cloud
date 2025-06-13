@@ -8,6 +8,7 @@ from pdf_scraper.block_utils import clean_blocks
 from pdf_scraper.line_utils  import get_line_df
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
 from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips
+from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions
 
 subject_code = {
     "irish": "001",
@@ -19,7 +20,7 @@ subject_code = {
 
 lang_code = {"irish":"IV", "english":"EV"}
 
-def open_exam(year:int, subject: str, level: str, paper=0):
+def open_exam(year:int, subject="english", level="al", paper=1):
     code = subject_code[subject.lower()]
     fname    = f"LC{code}{level.upper()}P{paper}00EV_{year}.pdf"
     examDir  = Path(__file__).parent.parent / "Exams"  / subject.lower() / level.upper()
@@ -80,42 +81,35 @@ def filter_images(images):
         images = reconstitute_strips(images)
     return images
 
-def get_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict]:
+def assign_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict]:
     """
     Add captions to images based on overlapping boxes. For english paper one, we
     will not caption anything on the first page, or after the 8th
     """
+    caption_line_indices=pd.Index([])
+    count=0
     for image in images:
         if image["page"] == 1 or image["page"] >8:
+            image["caption"]=""
             continue
-        rect = fitz.Rect(*image["bbox"])
+        indices=get_in_image_lines(doc_df,image)
+        doc_df.loc[indices]["caption"]=1
+        if len(indices)>0:
+            caption_line_indices.append(indices)
+            captions = get_in_image_captions(image,doc_df, indices)
+            image["caption"] = captions
+            count+=1
+        else:
+            image["caption"] = ""
 
-        # Filter all potentially overlapping rows using bounding box logic
-        overlap_mask = (
-            (doc_df["x1"] > rect.x0 + 0.2) &
-            (doc_df["x0"] < rect.x1) &
-            (doc_df["y1"] > rect.y0 + 0.2) &
-            (doc_df["y0"] < rect.y1) &
-            (doc_df["page"] == image["page"] )
-        )
-        overlapping_rows = doc_df[overlap_mask]
-
-        if len(overlapping_rows) > 0 and image["page"]!=1 :
-            print(overlapping_rows[["text","page"]].head(4))
-
-        overlapping_rows = overlapping_rows.sort_values(by="y0")
-
-        # Collect and join the text
-        image["caption"] = " ".join(overlapping_rows["text"].astype(str)).strip()
-
-    return images
+    return caption_line_indices, count
 
 def get_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict]:
     """
     Add captions to images based on overlapping boxes. For english paper one, we
     will not caption anything on the first page, or after the 8th
     """
-    images = get_in_image_captions(doc_df, images)
+    caption_indices, n_img = assign_in_image_captions(doc_df, images)
     # Captions to add manually
     # 2019 p6: 'Warstones\xa0Library\xa0'
     # 2014 p3: 'Canada by Richard Ford – book cover '
