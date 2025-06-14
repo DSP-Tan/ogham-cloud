@@ -79,22 +79,21 @@ def reconstitute_strips(image_blocks):
     return filtered_blocks
 
 def get_in_image_lines(doc_df: pd.DataFrame, image: dict) -> pd.Index:
-    img_rect = fitz.Rect(*image["bbox"])
+    rect = fitz.Rect(*image["bbox"])
 
     overlap_mask = (
-        (doc_df["x1"] > img_rect.x0 + 0.2) &
-        (doc_df["x0"] < img_rect.x1) &
-        (doc_df["y1"] > img_rect.y0 + 0.2) &
-        (doc_df["y0"] < img_rect.y1) &
+        (doc_df["x1"] > rect.x0 + 0.2) &
+        (doc_df["x0"] < rect.x1) &
+        (doc_df["y1"] > rect.y0 + 0.2) &
+        (doc_df["y0"] < rect.y1) &
         (doc_df["page"] == image["page"] )
     )
     return doc_df[overlap_mask].index
 
-def get_in_image_captions(doc_df: pd.DataFrame, image: dict) -> str:
+def get_in_image_captions(image: dict, doc_df: pd.DataFrame, indices: pd.Index) -> str:
     """
     Find all text contained within an image's bounding box.
     """
-    indices = get_in_image_lines(doc_df, image)
     overlapping_rows = doc_df.loc[indices].copy()
 
     overlapping_rows = overlapping_rows.sort_values(by="y0")
