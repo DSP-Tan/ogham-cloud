@@ -118,3 +118,11 @@ def get_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict]:
     # 2013 p7:
 
     return images
+
+def identify_instructions(doc_df):
+    page = (doc_df.page != 1)
+    pattern1 = doc_df.text.str.lstrip().str.contains(r"^N\.B\.")
+    pattern2 = doc_df.text.str.contains(r"^Candidates may NOT")
+    pattern3 = doc_df.text.str.contains(r"^Questions.*A.*and.*B.*carry.*50.*marks.*each")
+    doc_df[page & (pattern1 | pattern2 | pattern3 ) ]["instruction"]=1
+    return doc_df
