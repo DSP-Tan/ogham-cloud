@@ -50,7 +50,9 @@ def test_get_captions():
         assert caption == expected_caption
     check_nth_caption(2025, 'Underdog Jamaican Bobsled Team', 0)
     check_nth_caption(2024, '', 0)
-    check_nth_caption(2023,'Abdulrazak  Gurnah',0)
+    check_nth_caption(2023,'Abdulrazak \nGurnah',0)
+    check_nth_caption(2022,'BOOKS ARE WEAPONS IN THE WAR OF IDEAS',0)
+    check_nth_caption(2021, '', 0)
     check_nth_caption(2020, '', 0)
 
 
