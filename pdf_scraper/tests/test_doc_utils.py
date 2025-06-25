@@ -1,5 +1,5 @@
 from pdf_scraper.doc_utils import open_exam, get_images, get_doc_line_df, filter_images
-from pdf_scraper.doc_utils import get_captions
+from pdf_scraper.doc_utils import get_captions, identify_footers
 from fitz import Document
 
 
@@ -54,6 +54,23 @@ def test_get_captions():
     check_nth_caption(2022,'BOOKS ARE WEAPONS IN THE WAR OF IDEAS',0)
     check_nth_caption(2021, '', 0)
     check_nth_caption(2020, '', 0)
+
+def test_identify_footers():
+    for year in range(2001,2026):
+        doc = open_exam(year,"english","al",1)
+        doc_df = get_doc_line_df(doc)
+        doc_df = identify_footers(doc_df)
+        foots = doc_df[doc_df.footer==1].copy()
+        if year ==2001:
+            assert len(foots)==10
+        elif year >2001 and year <= 2009:
+            assert len(foots)==8
+        elif year >2009 and year <= 2017:
+            assert len(foots)==12
+        else:
+            assert len(foots)== 21
+
+
 
 
 

@@ -9,14 +9,10 @@ def test_get_in_image_lines():
         doc_df = get_doc_line_df(doc)
         images = get_images(doc)
         image = [img for img in images if img["page"]==page][n_image]
-        index = get_in_image_lines(doc_df, image)
+        index = get_in_image_lines(image,doc_df)
         assert all(index == expected_index)
     get_image_and_doc(2023,3,0,pd.Index([144,145]))
     get_image_and_doc(2025,2,0,pd.Index([43]))
-
-
-
-
 
 
 def test_get_in_image_captions():
@@ -25,7 +21,8 @@ def test_get_in_image_captions():
         doc_df = get_doc_line_df(doc)
         images = get_images(doc)
         image = [img for img in images if img["page"]==page][n_image]
-        caption = get_in_image_captions(doc_df, image)
+        indices = get_in_image_lines(image, doc_df)
+        caption = get_in_image_captions(image,doc_df, indices)
         assert caption == expected_caption
     get_image_and_doc(2023,3,0,'Abdulrazak \nGurnah')
     get_image_and_doc(2025,2,0,'Underdog Jamaican Bobsled Team')

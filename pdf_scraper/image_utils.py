@@ -70,7 +70,7 @@ def stitch_strips(image_blocks: list[dict]) -> dict:
 
     return img_block
 
-def reconstitute_strips(image_blocks):
+def reconstitute_strips(image_blocks: dict):
     strips = get_stripped_images(image_blocks)
     stitched = stitch_strips(strips)
     filtered_blocks = [img for img in image_blocks if not is_horizontal_strip(img)]
@@ -78,7 +78,7 @@ def reconstitute_strips(image_blocks):
     filtered_blocks.sort(key=lambda x: (x["page"], x["bbox"][1]))
     return filtered_blocks
 
-def get_in_image_lines(doc_df: pd.DataFrame, image: dict) -> pd.Index:
+def get_in_image_lines(image: dict,doc_df: pd.DataFrame) -> pd.Index:
     rect = fitz.Rect(*image["bbox"])
 
     overlap_mask = (
@@ -92,7 +92,9 @@ def get_in_image_lines(doc_df: pd.DataFrame, image: dict) -> pd.Index:
 
 def get_in_image_captions(image: dict, doc_df: pd.DataFrame, indices: pd.Index) -> str:
     """
-    Find all text contained within an image's bounding box.
+    Find all text contained within an image's bounding box. To be used together
+    with get_in_image_lines which will provide the indices fo the lines in the bounding
+    box of the image.
     """
     overlapping_rows = doc_df.loc[indices].copy()
 

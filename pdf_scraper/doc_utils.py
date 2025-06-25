@@ -92,7 +92,7 @@ def assign_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[d
         if image["page"] == 1 or image["page"] >8:
             image["caption"]=""
             continue
-        indices=get_in_image_lines(doc_df,image)
+        indices=get_in_image_lines(image,doc_df)
         doc_df.loc[indices]["caption"]=1
         if len(indices)>0:
             caption_line_indices.append(indices)
