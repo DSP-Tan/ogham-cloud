@@ -127,3 +127,25 @@ def identify_instructions(doc_df):
     mask = page & (pattern1 | pattern2 | pattern3)
     doc_df.loc[mask, "instruction"] = 1
     return doc_df
+
+def identify_footers(doc_df):
+    doc_df['rank'] = doc_df.groupby('page')['y0'].rank(method='first', ascending=False)
+
+    n_page_regex= r'page[ \xa0]*?(?:1[0-2]|[1-9])[ \xa0]of[ \xa0](?:1[0-2]|[1-9])'
+    n_page_regex= r'page[\xa0 ]*?(?:1[0-2]|[1-9])[\xa0 ]*?of[\xa0 ]*?(?:1[0-2]|[1-9])'
+    lc_regex    = r'leaving[ \xa0]certificate[ \xa0]examination[ \xa0]20[0-9][0-9]'
+    eng_regex   = r'english[ \xa0]–[ \xa0]higher[ \xa0]level[ \xa0]–[ \xa0]paper[ \xa0]1'
+    num_regex   = r'^(?:1[0-2]|[1-9])$'
+
+    pattern1 = doc_df.text.str.lower().str.contains(n_page_regex, regex=True)
+    pattern2 = doc_df.text.str.lower().str.contains(lc_regex, regex=True)
+    pattern3 = doc_df.text.str.lower().str.contains(eng_regex, regex=True)
+    pattern4 = doc_df.text.str.strip().str.contains(num_regex, regex=True)
+    bottom   = doc_df['rank'] <= 3
+
+    mask = bottom & (pattern1 | pattern2 | pattern3 | pattern4 )
+
+    doc_df.loc[mask, "footer"] = 1
+    doc_df.drop(columns=["rank"],inplace=False)
+
+    return doc_df

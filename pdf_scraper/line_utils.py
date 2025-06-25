@@ -84,11 +84,13 @@ def get_line_df(lines):
     dual_col       = [0]*len(lines)
     caption        = [0]*len(lines)
     instruction    = [0]*len(lines)
+    footer         = [0]*len(lines)
+
 
     data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,
     "common_font":common_font,"mode_font":mode_font,"n_words":n_words,"w":w,"h":h,
     "text":text, "font_sizes":font_size_list, "font_size":mode_font_size, "dual_col":dual_col,
-    "caption":caption,"instruction":instruction}
+    "caption":caption,"instruction":instruction, "footer":footer}
     return pd.DataFrame(data_dict)
 
 def get_clean_bins(x:pd.Series,bin_width:float):

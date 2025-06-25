@@ -22,7 +22,8 @@ for year in range(2001,2026):
 
     df['rank'] = df.groupby('page')['y0'].rank(method='first', ascending=False)
 
-    n_page_regex= r'page[ \xa0](?:1[0-2]|[1-9])[ \xa0]of[ \xa0](?:1[0-2]|[1-9])'
+    n_page_regex= r'page[ \xa0]*?(?:1[0-2]|[1-9])[ \xa0]of[ \xa0](?:1[0-2]|[1-9])'
+    n_page_regex= r'page[\xa0 ]*?(?:1[0-2]|[1-9])[\xa0 ]*?of[\xa0 ]*?(?:1[0-2]|[1-9])'
     lc_regex    = r'leaving[ \xa0]certificate[ \xa0]examination[ \xa0]20[0-9][0-9]'
     eng_regex   = r'english[ \xa0]–[ \xa0]higher[ \xa0]level[ \xa0]–[ \xa0]paper[ \xa0]1'
     num_regex   = r'^(?:1[0-2]|[1-9])$'
@@ -38,7 +39,11 @@ for year in range(2001,2026):
 
     print(year)
     print("--"*40)
-    print(result.head(20))
+    print(len(result))
+    print(result.head(40))
     print("--"*40)
+
+    #if  year==2008:
+    #    import ipdb; ipdb.set_trace()
 
     doc.close()
