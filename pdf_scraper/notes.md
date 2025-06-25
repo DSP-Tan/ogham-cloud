@@ -87,3 +87,11 @@ on blocked text.
      This way we will not by accident associate a page footer ("page 2") with the text
      we are trying to classify. This will facilitate the classification of more complex
      text types.
+
+# cluster detection on all documents
+
+When we start with a new type of document, we could try to do cluster detection on the entierety of
+the lines of all the documents (concatenated doc_df s for each year). That way we might better be 
+able to see what they have in common, the properties of their titles, footers, etc. 
+
+You could do it by page perhaps if there are similarities across pages. 
