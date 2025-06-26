@@ -146,6 +146,33 @@ def identify_footers(doc_df):
     mask = bottom & (pattern1 | pattern2 | pattern3 | pattern4 )
 
     doc_df.loc[mask, "footer"] = 1
-    doc_df.drop(columns=["rank"],inplace=False)
+    doc_df.drop(columns=["rank"],inplace=True)
+
+    return doc_df
+
+def identify_section_header(doc_df):
+    """
+    Titles will have the following properties:
+    - Centred
+    - Larger than the median text size on page.
+    - Near top?
+    """
+    doc_df['rank'] = doc_df.groupby('page')['y0'].rank(method='first', ascending=True)
+
+    section_regex= r'section[\xa0 ]*(?:I{1,2}|[1-2])'
+    compre_regex = r'comprehending'
+    compos_regex = r'composing'
+    marks_regex  = r'\(\d{1,3}\)\s*marks'
+
+    pattern1 = doc_df.text.str.contains(section_regex,flags=re.IGNORECASE, regex=True)
+    pattern2 = doc_df.text.str.lower().str.contains(compre_regex, regex=True)
+    pattern3 = doc_df.text.str.lower().str.contains(compos_regex, regex=True)
+    pattern4 = doc_df.text.str.strip().str.contains(marks_regex, regex=True)
+    top = doc_df['rank'] <= 4
+
+    mask = top & (pattern1 | pattern2 | pattern3 | pattern4 )
+
+    doc_df.loc[mask, "section_header"] = 1
+    doc_df.drop(columns=["rank"],inplace=True)
 
     return doc_df

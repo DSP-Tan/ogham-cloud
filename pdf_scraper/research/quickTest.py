@@ -3,7 +3,7 @@ import numpy as np
 from pathlib import Path
 import fitz
 from fitz import Rect
-import sys
+import sys, re
 
 from pdf_scraper.block_utils import identify_dual_column, get_block_text, sort_dual_column_blocks
 from pdf_scraper.doc_utils   import open_exam, get_doc_line_df
@@ -15,26 +15,34 @@ from pdf_scraper.line_utils  import get_line_df, print_line_table, get_all_lines
 
 pd.set_option("display.float_format", "{:.2f}".format)
 
+"""
+Section Titles will have the following properties:
+- Centred
+- Larger than the median text size on page.
+- Top of page
+- Mostly on specific pages.
+- Contain [section,I,II,Composing,Comprehending, n marks]
+"""
 
 for year in range(2001,2026):
     doc = open_exam(year, "english", "al",1)
     df = get_doc_line_df(doc).drop(columns=["caption","dual_col","instruction"])
 
-    df['rank'] = df.groupby('page')['y0'].rank(method='first', ascending=False)
 
-    n_page_regex= r'page[ \xa0]*?(?:1[0-2]|[1-9])[ \xa0]of[ \xa0](?:1[0-2]|[1-9])'
-    n_page_regex= r'page[\xa0 ]*?(?:1[0-2]|[1-9])[\xa0 ]*?of[\xa0 ]*?(?:1[0-2]|[1-9])'
-    lc_regex    = r'leaving[ \xa0]certificate[ \xa0]examination[ \xa0]20[0-9][0-9]'
-    eng_regex   = r'english[ \xa0]–[ \xa0]higher[ \xa0]level[ \xa0]–[ \xa0]paper[ \xa0]1'
-    num_regex   = r'^(?:1[0-2]|[1-9])$'
+    df['rank'] = df.groupby('page')['y0'].rank(method='first', ascending=True)
 
-    pattern1 = df.text.str.lower().str.contains(n_page_regex, regex=True)
-    pattern2 = df.text.str.lower().str.contains(lc_regex, regex=True)
-    pattern3 = df.text.str.lower().str.contains(eng_regex, regex=True)
-    pattern4 = df.text.str.strip().str.contains(num_regex, regex=True)
-    bottom = df['rank'] <= 3
+    section_regex= r'section[\xa0 ]*(?:I{1,2}|[1-2])'
+    compre_regex = r'comprehending'
+    compos_regex = r'composing'
+    marks_regex  = r'\(\d{1,3}\)\s*marks'
 
-    result = df[ bottom & (pattern1 | pattern2 | pattern3 | pattern4 ) ].drop(columns=["rank"],inplace=False)
+    pattern1 = df.text.str.contains(section_regex,flags=re.IGNORECASE, regex=True)
+    pattern2 = df.text.str.lower().str.contains(compre_regex, regex=True)
+    pattern3 = df.text.str.lower().str.contains(compos_regex, regex=True)
+    pattern4 = df.text.str.strip().str.contains(marks_regex, regex=True)
+    top = df['rank'] <= 4
+
+    result = df[ top & (pattern1 | pattern2 | pattern3 | pattern4 ) ].drop(columns=["rank"],inplace=False)
 
 
     print(year)
@@ -43,7 +51,7 @@ for year in range(2001,2026):
     print(result.head(40))
     print("--"*40)
 
-    #if  year==2008:
+    #if  year==2001:
     #    import ipdb; ipdb.set_trace()
 
     doc.close()
