@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from PIL import Image
-import io
+import re
 from pdf_scraper.block_utils import clean_blocks
 from pdf_scraper.line_utils  import get_line_df
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
@@ -150,9 +150,9 @@ def identify_footers(doc_df):
 
     return doc_df
 
-def identify_section_header(doc_df):
+def identify_section_headers(doc_df):
     """
-    Titles will have the following properties:
+    Section Titles will have the following properties:
     - Centred
     - Larger than the median text size on page.
     - Near top?
@@ -172,7 +172,7 @@ def identify_section_header(doc_df):
 
     mask = top & (pattern1 | pattern2 | pattern3 | pattern4 )
 
-    doc_df.loc[mask, "section_header"] = 1
+    doc_df.loc[mask, "section"] = 1
     doc_df.drop(columns=["rank"],inplace=True)
 
     return doc_df
