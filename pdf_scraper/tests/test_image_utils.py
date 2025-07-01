@@ -26,3 +26,5 @@ def test_get_in_image_captions():
         assert caption == expected_caption
     get_image_and_doc(2023,3,0,'Abdulrazak \nGurnah')
     get_image_and_doc(2025,2,0,'Underdog Jamaican Bobsled Team')
+
+# To Do: also test the not-in-image captions.
