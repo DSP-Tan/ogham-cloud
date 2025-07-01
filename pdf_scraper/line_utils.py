@@ -63,6 +63,28 @@ def get_all_lines(blocks: list[dict]):
             lines.extend(block["lines"])
     return lines
 
+def get_font_size(line):
+    """
+    Because we will often have a line composed of many spans some of which have different
+    font sizes, we need a way to decide which of these font sizes to use.
+
+    We could use the mode of the font sizes of each span. However, when there are
+    just two spans this is ambiguous.
+
+    When there are two spans, we take the font size to be the font size used for
+    the most characters. So we will need the size of the spans.
+    """
+    spans          = line["spans"]
+    n_spans        = len(spans)
+    if n_spans ==1:
+        return line["spans"][0]["size"]
+    font_sizes = [span["size"] for span in spans]
+    size_count = {font_size:0 for font_size in font_sizes}
+    for span in spans:
+        n_chars = len(span["text"].strip())
+        size_count[span["size"]] += n_chars
+    return max(size_count, key=size_count.get)
+
 
 def get_line_df(lines):
     coords         = [line['bbox'] for line in lines]
@@ -81,6 +103,7 @@ def get_line_df(lines):
     n_words        = [len(get_line_words(line)) for line in lines ]
     font_size_list = [[span["size"] for span in line["spans"]  ]  for line in lines]
     mode_font_size = [ mode([span["size"] for span in line["spans"]  ]).mode for line in lines ]
+    font_size      = [get_font_size(line) for line in lines]
     dual_col       = [0]*len(lines)
     caption        = [0]*len(lines)
     instruction    = [0]*len(lines)
@@ -90,8 +113,9 @@ def get_line_df(lines):
 
     data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,
     "common_font":common_font,"mode_font":mode_font,"n_words":n_words,"w":w,"h":h,
-    "text":text, "font_sizes":font_size_list, "font_size":mode_font_size, "dual_col":dual_col,
-    "caption":caption,"instruction":instruction, "footer":footer, "section":section}
+    "text":text, "font_sizes":font_size_list, "mode_font_size":mode_font_size,
+    "font_size":font_size, "dual_col":dual_col, "caption":caption,
+    "instruction":instruction, "footer":footer, "section":section}
     return pd.DataFrame(data_dict)
 
 def get_clean_bins(x:pd.Series,bin_width:float):
