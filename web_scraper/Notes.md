@@ -41,3 +41,7 @@ With Selenium it seems it is very important to wait for the pages to load before
 element. I have implemented this with just sleeps, but there are selenium native ways of doing it that
 must be more appropriate. In addition to that, if we put our find_elements inside a while loop with a try
 except, we can perhaps keep trying to get the element until we find it or a certain number of tries is exceeded.
+
+# Geography
+
+From 2018 onwards the maps and things start having the postfix ".tif" so it breaks the code. You need to fix that. 
