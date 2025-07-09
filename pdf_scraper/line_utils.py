@@ -142,6 +142,36 @@ def get_bbox(lines):
     y1 = line_df.y1.max()
     return tuple( float(i) for i in [x0,y0,x1,y1] )
 
+def re_box_line(df):
+    """
+    Certain lines have their words pre-pended by many spaces and this causes their
+    bbox to innacurately represent the text as it's displayed in the pdf. For example
+    the string: "                                      hello"
+
+    Would not count as being centred on the page, because the x0 will be associated
+    with the first space.
+
+    - Count number of prepended and post pended spaces.
+    - Remove spaces.
+    - Adjust bbox by adding space_width*n_spaces to x0, for prepended spaces,
+      and subtracting this for postpended spaces.
+    """
+    l_spaces = len(df.loc[157].text) - len(df.loc[157].text.lstrip() )
+    r_spaces = len(df.loc[157].text) - len(df.loc[157].text.rstrip() )
+
+    if l_spaces < 3 and r_spaces < 3:
+        return df
+
+    #def redefine_bbox_for_whitespace_line(x0, y0, font_size, num_spaces, line_height_multiplier=1.2):
+    approx_space_width = 0.33 * font_size
+    width = num_spaces * approx_space_width
+    height = font_size * line_height_multiplier
+    x1 = x0 + width
+    y1 = y0 + height
+    return (x0, y0, x1, y1)
+
+
+
 
 from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks

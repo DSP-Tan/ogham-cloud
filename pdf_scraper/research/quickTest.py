@@ -46,8 +46,9 @@ for year in range(2001,2026):
     result = df.loc[large_font & bold_font & pages & uncategorised & centred & top , ["text","font_size","font_sizes", "page","mode_font","common_font"]].copy()
     result["font_multip"] = result.font_size/median_font
 
-    if year==2006:
+    if year==2010:
         import ipdb; ipdb.set_trace()
+
 
 
     print(year)
