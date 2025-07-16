@@ -5,7 +5,7 @@ from pathlib import Path
 from PIL import Image
 import re
 from pdf_scraper.block_utils import clean_blocks
-from pdf_scraper.line_utils  import get_line_df
+from pdf_scraper.line_utils  import get_line_df, get_line_text
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
 from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips
 from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions
@@ -27,6 +27,11 @@ def open_exam(year:int, subject="english", level="al", paper=1):
     pdf_file = examDir / fname
 
     return fitz.open(pdf_file)
+
+def get_doc_year(doc):
+    """Returns year of exam of document using file path."""
+    year = int(str(doc).split("_")[1][:4])
+    return year
 
 def extract_and_print_page(input_pdf:str, output_pdf:str, n_page:int):
     doc = fitz.open(input_pdf)
@@ -58,6 +63,18 @@ def get_doc_line_df(doc):
     doc_df["dual_col"]=0
 
     return doc_df
+
+def get_raw_lines(doc, row: pd.Series):
+    n_page = row.page
+    page = doc[n_page -1]
+    page_blocks  = page.get_text("dict",sort=True)["blocks"]
+    text_blocks  = [block for block in page_blocks if not block["type"]]
+    text_blocks  = clean_blocks(text_blocks)
+    page_lines   = [ line for block in text_blocks for line in block["lines"]]
+    line_texts   = [get_line_text(line) for line in page_lines]
+    raw_line_index  = [ i for i, text in enumerate(line_texts) if text == row.text]
+    raw_lines = [ page_lines[i] for i in raw_line_index]
+    return raw_lines
 
 
 def get_images(doc):
