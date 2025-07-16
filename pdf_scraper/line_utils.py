@@ -142,7 +142,28 @@ def get_bbox(lines):
     y1 = line_df.y1.max()
     return tuple( float(i) for i in [x0,y0,x1,y1] )
 
-def re_box_line(df):
+
+def is_buffered_line(df: pd.DataFrame, threshold: int = 3) -> pd.Series:
+    """
+    Returns a boolean Series where 'text' starts or ends with at least <threshold> spaces.
+    use:
+    mask=  is_buffered_line(df, 6)
+    buffered_lines = df.loc[ mask ]
+    """
+    return df.text.str.endswith(" " * threshold ) | df.text.str.startswith(" "* threshold )
+
+
+FONT_MAP = {
+    'TimesNewRomanPSMT': 'Times-Roman',
+    'TimesNewRomanPS'  : 'Times-Roman',
+    'TimesNewRomanPS-BoldMT': 'Times-Bold',
+    'TimesNewRomanPS-ItalicMT': 'Times-Italic',
+    'TimesNewRomanPS-BoldItalicMT': 'Times-BoldItalic',
+    'ArialMT': 'Helvetica',
+    'Arial-BoldMT': 'Helvetica-Bold',
+    'CourierNewPSMT': 'Courier',}
+
+def re_box_line(row: pd.Series) -> pd.Series:
     """
     Certain lines have their words pre-pended by many spaces and this causes their
     bbox to innacurately represent the text as it's displayed in the pdf. For example
@@ -155,23 +176,28 @@ def re_box_line(df):
     - Remove spaces.
     - Adjust bbox by adding space_width*n_spaces to x0, for prepended spaces,
       and subtracting this for postpended spaces.
+
+    Sample use: 
+    buffered_lines.update(buffered_lines.apply(re_box_line_partial, axis=1))
+    or
+    fixed_lines.loc[:,["x0","x1","text"]] = buffered_lines.apply(re_box_line_partial, axis=1)
+
     """
-    l_spaces = len(df.loc[157].text) - len(df.loc[157].text.lstrip() )
-    r_spaces = len(df.loc[157].text) - len(df.loc[157].text.rstrip() )
+    font_name = FONT_MAP[row.common_font]
+    font = fitz.Font(font_name)  
+    txt = row.text
+    l_spaces = len(txt) - len(txt.lstrip() )
+    r_spaces = len(txt) - len(txt.rstrip() )
+        
+    space_advance = font.glyph_advance(ord(' '))  
+    l_width = l_spaces * space_advance * row.font_size
+    r_width = r_spaces * space_advance * row.font_size
+    
+    x0 = row.x0 + l_width
+    x1 = row.x1 - r_width
+    text = txt.strip()
 
-    if l_spaces < 3 and r_spaces < 3:
-        return df
-
-    #def redefine_bbox_for_whitespace_line(x0, y0, font_size, num_spaces, line_height_multiplier=1.2):
-    approx_space_width = 0.33 * font_size
-    width = num_spaces * approx_space_width
-    height = font_size * line_height_multiplier
-    x1 = x0 + width
-    y1 = y0 + height
-    return (x0, y0, x1, y1)
-
-
-
+    return pd.Series({"x0":x0,"x1":x1, "text":text })
 
 from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks
