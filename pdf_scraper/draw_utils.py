@@ -5,23 +5,39 @@ from pathlib import Path
 import numpy as np
 from typing import Iterable, Tuple, List, Optional
 
-def draw_rectangle_on_page(pdf_path: str, output_pdf: str,  page_index: int, rect: Rect):
+def draw_rectangles_on_page(pdf_path: str, output_pdf: str,  page_index: int, rects: list[Rect]):
     """
-    Opens a PDF, draws a dark blue rectangle on the specified page, and saves the modified PDF.
+    Opens a PDF, draws a dark blue rectangles on the specified page, and saves the modified PDF.
     :param pdf_path: input pdf path; param output_pdf: output pdf path
     :param page_index: index of page you want to draw rect on. (from 0)
-    :param Rect -> fitz.Rect object rectangle you want to draw on page
+    :param rects -> list of fitz.Rect object rectangle you want to draw on page
     """
-    doc  = fitz.open(pdf_path)
-    page = doc[page_index]
-    page.draw_rect(rect, color=(0, 0, 0.5), width=3)
+    in_doc  = fitz.open(pdf_path)
+    page = in_doc[page_index]
+    for rect in rects:
+        page.draw_rect(rect, color=(0, 0, 0.5), width=3)
 
     out_doc = fitz.open()
-    out_doc.insert_pdf(doc, from_page=page_index, to_page=page_index)
+    out_doc.insert_pdf(in_doc, from_page=page_index, to_page=page_index)
     out_doc.save(output_pdf)
     out_doc.close()
-    doc.close()
+    in_doc.close()
 
+def draw_rectangles_for_all_pages(pdf_path: str, out_name: str, buffered_lines: pd.DataFrame):
+    """
+    Loops through each page in the DataFrame and draws all bounding boxes for that page.
+    Saves each as fart_<page>.pdf.
+    """
+    pages = sorted(buffered_lines.page.unique())
+
+    for page_number in pages:
+        page_index = int(page_number - 1)
+
+        lines_on_page = buffered_lines[buffered_lines.page == page_number]
+        rects = [fitz.Rect(row['x0'], row['y0'], row['x1'], row['y1']) for _, row in lines_on_page.iterrows() ]
+
+        output_pdf = f"{out_name}_{page_number}.pdf"
+        draw_rectangles_on_page(pdf_path, output_pdf, page_index, rects)
 
 def get_fill_df(drawings):
     draws = [ draw for draw in drawings if draw["type"]=="f"]
