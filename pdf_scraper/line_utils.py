@@ -181,12 +181,24 @@ FONT_MAP = {
     'TimesNewRomanPS'  : 'Times-Roman',
     'TimesNewRoman'    : 'Times-Roman',
     'TimesNewRomanPS-BoldMT': 'Times-Bold',
+    'TimesNewRomanPS-BoldItal' : 'Times-BoldItalic',
+    'TimesNewRoman,Bold': 'Times-Bold',
     'TimesNewRomanPS-Bold': 'Times-Bold',
     'TimesNewRomanPS-ItalicMT': 'Times-Italic',
     'TimesNewRomanPS-BoldItalicMT': 'Times-BoldItalic',
     'ArialMT': 'Helvetica',
     'Arial-BoldMT': 'Helvetica-Bold',
-    'CourierNewPSMT': 'Courier',}
+    'CourierNewPSMT': 'Courier',
+    'Cambria': 'Times-Roman',
+    'Cambria-Bold': 'Times-Bold',
+    'Cambria-Italic': 'Times-Italic',
+    'Cambria-BoldItalic': 'Times-BoldItalic',
+    'Calibri': 'Helvetica',
+    'Calibri-Bold': 'Helvetica-Bold',
+    'Calibri,Bold': 'Helvetica-Bold',
+    'Calibri-Italic': 'Helvetica-Oblique',
+    'Calibri-BoldItalic': 'Helvetica-BoldOblique',
+    }
 
 def re_box_line(row: pd.Series) -> pd.Series:
     """
@@ -203,6 +215,11 @@ def re_box_line(row: pd.Series) -> pd.Series:
     fixed_lines.loc[:,["x0","x1","text"]] = buffered_lines.apply(re_box_line_partial, axis=1)
     """
     font_name = FONT_MAP[row.mode_font]
+    #try:
+    #    font_name = FONT_MAP[row.mode_font]
+    #except:
+    #    font_name = FONT_MAP[row.common_font]
+
     font = fitz.Font(font_name)  
     txt = row.text
     l_spaces = len(txt) - len(txt.lstrip() )
