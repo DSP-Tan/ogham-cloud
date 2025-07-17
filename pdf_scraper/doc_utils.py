@@ -172,7 +172,8 @@ def identify_section_headers(doc_df):
     Section Titles will have the following properties:
     - Centred
     - Larger than the median text size on page.
-    - Near top?
+    - Near top
+    - Specific text saying Section I or Section II or comprehending or composing.
     """
     doc_df['rank'] = doc_df.groupby('page')['y0'].rank(method='first', ascending=True)
 
@@ -193,3 +194,27 @@ def identify_section_headers(doc_df):
     doc_df.drop(columns=["rank"],inplace=True)
 
     return doc_df
+
+def identify_text_headers(doc_df, doc_width):
+    if doc_df.section.sum() == 0:
+        raise RuntimeError("Assign section headings first")
+
+    doc_df['rank'] = doc_df.groupby('page')['y0'].rank(method='first', ascending=True)
+    middle        = doc_width/2
+    median_size   = doc_df.font_size.median()
+    standard_font = doc_df.mode_font.mode()[0]
+
+    large_font    = doc_df.font_size >= median_size*1.15
+    bold_font     = doc_df.mode_font.str.contains("Bold")
+    pages         = (doc_df.page > 1) & (doc_df.page <9)
+    centred       = ( (doc_df.x0 + doc_df.x1)/2 > middle -30 ) & ( (doc_df.x0 + doc_df.x1)/2 < middle +30 )
+    uncategorised = (doc_df.section==0) & (doc_df.caption ==0) & (doc_df.instruction==0)
+    top           = doc_df['rank'] <= 20
+
+    mask = large_font & bold_font & pages & uncategorised & centred & top
+
+    doc_df.loc[mask, "title"] = 1 
+    doc_df.drop(columns=["rank"],inplace=True)
+
+    return doc_df
+
