@@ -202,7 +202,7 @@ def re_box_line(row: pd.Series) -> pd.Series:
     or
     fixed_lines.loc[:,["x0","x1","text"]] = buffered_lines.apply(re_box_line_partial, axis=1)
     """
-    font_name = FONT_MAP[row.common_font]
+    font_name = FONT_MAP[row.mode_font]
     font = fitz.Font(font_name)  
     txt = row.text
     l_spaces = len(txt) - len(txt.lstrip() )
