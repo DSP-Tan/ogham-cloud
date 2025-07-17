@@ -1,13 +1,9 @@
 import numpy as np
 import pandas as pd
-import re
+import re, fitz
 from scipy.stats import mode
 from pdf_scraper.general_utils import bbox_distance, bbox_vert_dist
 
-def get_mode_font(fonts):
-    font_counts = np.unique(fonts,return_counts=True)
-    maxfontarg  = np.argmax(font_counts[1])
-    return fonts[maxfontarg]
 
 def common_font_elems(s1,s2):
     L1, L2 = len(s1), len(s2)
@@ -24,6 +20,27 @@ def get_common_font(fonts):
     for font in fonts[1:]:
         common_font =common_font_elems(common_font,font)
     return "".join(common_font)
+
+def get_span_mode_font(fonts):
+    font_counts = np.unique(fonts,return_counts=True)
+    maxfontarg  = np.argmax(font_counts[1])
+    return fonts[maxfontarg]
+
+def get_mode_font(line):
+    """
+    Because we will often have a line composed of many spans some of which have different
+    fonts, this function will return the font used for the most characters of the line.
+    """
+    spans          = line["spans"]
+    n_spans        = len(spans)
+    if n_spans ==1:
+        return line["spans"][0]["font"]
+    fonts = [span["font"] for span in spans]
+    font_count = {font:0 for font in fonts}
+    for span in spans:
+        n_chars = len(span["text"])
+        font_count[span["font"]] += n_chars
+    return max(font_count, key=font_count.get)
 
 
 def get_line_text(line: dict) -> str:
@@ -96,7 +113,7 @@ def get_line_df(lines):
     n_spans        = [len(line["spans"]) for line in lines]
     font_list      = [                [span["font"] for span in line["spans"]  ]  for line in lines]
     common_font    = [get_common_font([span["font"] for span in line["spans"]  ]) for line in lines]
-    mode_font      = [get_mode_font(  [span["font"] for span in line["spans"]  ]) for line in lines]
+    mode_font      = [get_mode_font( line ) for line in lines]
     w              = [coord[2]-coord[0] for coord in coords]
     h              = [coord[3]-coord[1] for coord in coords]
     text           = [get_line_text(line)       for line in lines]
@@ -117,6 +134,12 @@ def get_line_df(lines):
     "font_size":font_size, "dual_col":dual_col, "caption":caption,
     "instruction":instruction, "footer":footer, "section":section}
     return pd.DataFrame(data_dict)
+
+def clean_line_df(df):
+    buff_mask = is_buffered_line(df, 6)
+    df.loc[buff_mask, ["x0", "x1", "text"]] = df.loc[buff_mask].apply(re_box_line, axis=1)
+    return df
+    
 
 def get_clean_bins(x:pd.Series,bin_width:float):
     '''
@@ -156,7 +179,9 @@ def is_buffered_line(df: pd.DataFrame, threshold: int = 3) -> pd.Series:
 FONT_MAP = {
     'TimesNewRomanPSMT': 'Times-Roman',
     'TimesNewRomanPS'  : 'Times-Roman',
+    'TimesNewRoman'    : 'Times-Roman',
     'TimesNewRomanPS-BoldMT': 'Times-Bold',
+    'TimesNewRomanPS-Bold': 'Times-Bold',
     'TimesNewRomanPS-ItalicMT': 'Times-Italic',
     'TimesNewRomanPS-BoldItalicMT': 'Times-BoldItalic',
     'ArialMT': 'Helvetica',
