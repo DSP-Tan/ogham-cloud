@@ -65,7 +65,7 @@ def get_doc_line_df(doc):
     return doc_df
 
 def get_raw_lines(doc, row: pd.Series):
-    n_page = row.page
+    n_page = int(row.page)
     page = doc[n_page -1]
     page_blocks  = page.get_text("dict",sort=True)["blocks"]
     text_blocks  = [block for block in page_blocks if not block["type"]]
