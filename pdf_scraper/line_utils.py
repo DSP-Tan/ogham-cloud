@@ -165,23 +165,17 @@ FONT_MAP = {
 
 def re_box_line(row: pd.Series) -> pd.Series:
     """
-    Certain lines have their words pre-pended by many spaces and this causes their
-    bbox to innacurately represent the text as it's displayed in the pdf. For example
-    the string: "                                      hello"
+    This functino removes leading and trailing whitespace in a line, and adjusts the
+    bounding box of the line to be only around the non-whitespace text.
+    
+    Motivated by strings like:
+    '                                      hello'
+    Which is actually centred but which will have a bbox that says left-aligned.
 
-    Would not count as being centred on the page, because the x0 will be associated
-    with the first space.
-
-    - Count number of prepended and post pended spaces.
-    - Remove spaces.
-    - Adjust bbox by adding space_width*n_spaces to x0, for prepended spaces,
-      and subtracting this for postpended spaces.
-
-    Sample use: 
+    Use: 
     buffered_lines.update(buffered_lines.apply(re_box_line_partial, axis=1))
     or
     fixed_lines.loc[:,["x0","x1","text"]] = buffered_lines.apply(re_box_line_partial, axis=1)
-
     """
     font_name = FONT_MAP[row.common_font]
     font = fitz.Font(font_name)  
