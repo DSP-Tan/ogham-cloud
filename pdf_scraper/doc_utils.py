@@ -198,8 +198,8 @@ def identify_section_headers(doc_df):
 def identify_text_headers(doc_df, doc_width):
     if doc_df.section.sum() == 0:
         raise RuntimeError("Assign section headings first")
-
-    doc_df['rank'] = doc_df.groupby('page')['y0'].rank(method='first', ascending=True)
+    
+    doc_df['rank'] = doc_df[doc_df.section==0].groupby('page')['y0'].rank(method='first', ascending=True)
     middle        = doc_width/2
     median_size   = doc_df.font_size.median()
     standard_font = doc_df.mode_font.mode()[0]
@@ -209,9 +209,9 @@ def identify_text_headers(doc_df, doc_width):
     pages         = (doc_df.page > 1) & (doc_df.page <9)
     centred       = ( (doc_df.x0 + doc_df.x1)/2 > middle -30 ) & ( (doc_df.x0 + doc_df.x1)/2 < middle +30 )
     uncategorised = (doc_df.section==0) & (doc_df.caption ==0) & (doc_df.instruction==0)
-    top           = doc_df['rank'] <= 20
+    top           = doc_df['rank'] <= 3
 
-    mask = large_font & bold_font & pages & uncategorised & centred & top
+    mask = large_font  & pages & uncategorised & centred & top #& bold_font 
 
     doc_df.loc[mask, "title"] = 1 
     doc_df.drop(columns=["rank"],inplace=True)

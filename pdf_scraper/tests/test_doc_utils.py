@@ -86,16 +86,16 @@ def test_identify_text_headers_length():
             assert len(heads)==8
         elif year >2001 and year <= 2004:
             assert len(heads)==6
-        elif year == 2005:        # This should not be 8 but that is the current behaviour
-            assert len(heads)==8  
-        elif year == 2006:        # This should be 6 when you introduce the loose matching. The text is not bold.
-            assert len(heads)==4
-        elif year == 2007:        # This should be 6 when you introduce the loose matching. The text is not bold.
+        elif year == 2005:        
+            assert len(heads)==6  
+        elif year == 2006:        
+            assert len(heads)==6
+        elif year == 2007:        
             assert len(heads)==6
         elif year == 2008:        # This is 4 because text 3 is all image.
             assert len(heads)==4
         elif year == 2009:        # This year has lots of problems but this is the current behaviour
-            assert len(heads)==8  
+            assert len(heads)==7, f"Year {year}, {len(heads)} instead of 7"  
         elif year ==2010 or year == 2012 or year == 2014 or year == 2015:
             assert len(heads)==6
         elif year ==2011 or year == 2013:
@@ -104,7 +104,7 @@ def test_identify_text_headers_length():
             assert len(heads)==3
 
 
-def test_identify_text_headers_length():
+def test_identify_text_headers_content():
     for year in range(2001,2026):
         doc = open_exam(year,"english","al",1)
         width = doc[0].rect.width
@@ -151,9 +151,11 @@ def test_identify_text_headers_length():
             assert doc_df.loc[172].text=='ORDINARY LIVES IN WAR TIME '
             assert doc_df.loc[246].text=='TEXT 3 '
             assert doc_df.loc[247].text=='PUBLIC LIVES '
-            assert doc_df.loc[251].text=='World exclusive ! Irish Rock Diva speaks to readers from '  # This is not correct but it is current behaviour
-            assert doc_df.loc[252].text=='her Italian villa. '                                        # This is not correct but it is current behaviour
+            #assert doc_df.loc[251].text=='World exclusive ! Irish Rock Diva speaks to readers from '  # This is not correct but it is current behaviour
+            #assert doc_df.loc[252].text=='her Italian villa. '                                        # This is not correct but it is current behaviour
         elif year==2006:
+            assert doc_df.loc[26].text=='TEXT I '
+            assert doc_df.loc[27].text=='“WHAT SEEMS TO BE THE PROBLEM, LADY SARAH?” '
             assert doc_df.loc[153].text=='TEXT 2 '
             assert doc_df.loc[154].text=='GHOST WRITING    '
             assert doc_df.loc[278].text=='TEXT 3 '
@@ -173,7 +175,7 @@ def test_identify_text_headers_length():
         elif year==2009:
             assert doc_df.loc[26].text=='TEXT 1 '
             assert doc_df.loc[27].text=='Decisions for Society'
-            assert doc_df.loc[30].text=='Should Zoos be Closed? '
+            #assert doc_df.loc[30].text=='Should Zoos be Closed? '
             assert doc_df.loc[173].text=='TEXT 2 '
             assert doc_df.loc[174].text=='Personal Decisions '
             assert doc_df.loc[323].text=='TEXT 3 '
