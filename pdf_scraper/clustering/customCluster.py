@@ -6,12 +6,13 @@ from pdf_scraper.clustering.cluster_utils import calc_cust_dists, calc_inertia, 
 from pathlib import Path
 
 if __name__=="__main__":
-    pdf_file         = Path(__file__).parent.parent / "test_pdfs" / "LC002ALP100EV_2024.pdf"
-    doc              = fitz.open(pdf_file)
-    page             = doc[3]
-    page_dict        = page.get_text("dict",sort=True)
-    blocks           = page_dict["blocks"]
-    block            = blocks[6]
+    exam_dir     = Path(__file__).parent.parent.parent / "Exams" / "english" / "AL"
+    pdf_file     = exam_dir / "LC002ALP100EV_2024.pdf"
+    doc          = fitz.open(pdf_file)
+    page         = doc[3]
+    page_dict    = page.get_text("dict",sort=True)
+    blocks       = page_dict["blocks"]
+    block        = blocks[6]
     
     lines = [line for line in block["lines"] if not line_is_empty(line)]
     
@@ -23,8 +24,9 @@ if __name__=="__main__":
     word_mask = df["n_words"].to_numpy() < 4
     
     # These cols of the df are not informative for text-block clustering.
-    bad_nums = ["n_spans","dL","x1","n_words","h"]
-    bad_cats = ["font_list","text","mode_font"]
+    cols = ['x0', 'y0', 'y1', 'w',  'font_size', 'common_font']
+    bad_nums = [col for col in df.select_dtypes(include="number") if col not in cols]
+    bad_cats = [col for col in df.select_dtypes(include="object") if col not in cols]
     
     X_df   = preproc(bad_nums, bad_cats, df, font_scale=2)
     X      = np.array(X_df)
@@ -71,8 +73,9 @@ def reblock_lines(lines, verbose=False):
     word_mask = line_df["n_words"].to_numpy() < 4
     
     # These cols of the df are not informative for text-block clustering.
-    bad_nums = ["n_spans","dL","x1","n_words","h"]
+    bad_nums = ["n_spans","dL","x1","n_words","h", "mode_font_size"]
     bad_cats = ["font_list","text","mode_font"]
+
     
     X_df   = preproc(bad_nums, bad_cats, line_df, font_scale=2)
     X      = np.array(X_df)
