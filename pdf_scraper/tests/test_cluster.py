@@ -21,11 +21,9 @@ def test_standard_cluster():
     pd.set_option("display.float_format", "{:.2f}".format)
     df        = get_line_df(lines)
 
-    # These cols of the df are not informative for text-block clustering.
-    bad_nums = ["n_spans","dL","x1","n_words","h","x0","y1","font_size"]
-    bad_cats = ["font_list","text","mode_font","font_sizes"]
+    cols = ['x0', 'y0', 'y1', 'w',  'font_size', 'common_font']
     
-    X_df = preproc(bad_nums,bad_cats, df)
+    X_df = preproc(cols, df)
     X    = np.array(X_df)
     X_cols = X_df.columns.to_list()
     
