@@ -60,7 +60,6 @@ def get_doc_line_df(doc):
         page_df.sort_values("y0",inplace=True)
         dfs.append(page_df)
     doc_df = pd.concat(dfs,ignore_index=True)
-    doc_df["dual_col"]=0
 
     return doc_df
 
