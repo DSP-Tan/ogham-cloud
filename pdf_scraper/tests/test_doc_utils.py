@@ -167,7 +167,7 @@ def test_identify_text_headers_content():
             assert doc_df.loc[156].text=='LONDON, PAST AND PRESENT '
             assert doc_df.loc[297].text=='TEXT 3 '
             assert doc_df.loc[298].text=='FORCES FOR CHANGE? '
-        elif year==2008:
+        elif year==2008:   # Text 3 is all image.
             assert doc_df.loc[26].text=='TEXT 1 '
             assert doc_df.loc[27].text=='TEENAGE IDENTITY '
             assert doc_df.loc[166].text=='TEXT 2 '
@@ -180,7 +180,7 @@ def test_identify_text_headers_content():
             assert doc_df.loc[174].text=='Personal Decisions '
             assert doc_df.loc[323].text=='TEXT 3 '
             assert doc_df.loc[324].text=='The Decisive Moment '
-            assert doc_df.loc[329].text=='Creating the Decisive Moment '
+            assert doc_df.loc[329].text=='Creating the Decisive Moment '   # This appears at the top of the second page of Text3, we can still call it a title.
         elif year==2010:
             assert doc_df.loc[26].text=='TEXT 1 '
             assert doc_df.loc[27].text=='A Personal Future '
