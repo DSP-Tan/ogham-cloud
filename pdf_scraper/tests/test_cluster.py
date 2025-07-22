@@ -21,7 +21,7 @@ def test_standard_cluster():
     pd.set_option("display.float_format", "{:.2f}".format)
     df        = get_line_df(lines)
 
-    cols = ['x0', 'y0', 'y1', 'w',  'font_size', 'common_font']
+    cols = ['x0', 'y0', 'y1', 'w',  'font_size', 'mode_font']
     
     X_df = preproc(cols, df)
     X    = np.array(X_df)

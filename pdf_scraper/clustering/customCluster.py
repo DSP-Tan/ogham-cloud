@@ -23,7 +23,7 @@ if __name__=="__main__":
     # We need to choose now the rows where the number of words is below 4
     word_mask = df["n_words"].to_numpy() < 4
     
-    cols = ['x0', 'y0', 'y1', 'w',  'font_size', 'common_font']
+    cols = ['x0', 'y0', 'y1', 'w',  'font_size', 'mode_font']
     
     X_df   = preproc(cols, df, font_scale=2)
     X      = np.array(X_df)
@@ -69,7 +69,7 @@ def reblock_lines(lines, verbose=False):
     # We need to choose now the rows where the number of words is below 4
     word_mask = line_df["n_words"].to_numpy() < 4
     
-    cols = ['x0', 'y0', 'y1', 'w', 'common_font']
+    cols = ['x0', 'y0', 'y1', 'w', 'mode_font']
     
     X_df   = preproc(cols, line_df, font_scale=2)
     X      = np.array(X_df)

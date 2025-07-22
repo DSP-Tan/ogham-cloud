@@ -19,7 +19,7 @@ def preproc(cols, df, font_scale=1):
         )
     X      = basic_preproc.fit_transform(df)
     X_df   = pd.DataFrame(X,columns=num_vars + cat_vars)
-    X_df.common_font *=font_scale
+    X_df.mode_font *=font_scale
     return X_df
 
 def calc_normal_dists(clusts, X ):
