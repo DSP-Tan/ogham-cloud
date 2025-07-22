@@ -12,14 +12,20 @@ def preproc(cols, df, font_scale=1):
     num_vars = [ col for col in df.select_dtypes(include=np.number).columns if col in cols] 
     cat_vars = [ col for col in df.select_dtypes(include='object').columns  if col in cols] 
     
+    ohe = OneHotEncoder(drop="if_binary",sparse_output=False, handle_unknown="error")
     basic_preproc = make_column_transformer(
         (StandardScaler(), num_vars),
-        (OneHotEncoder(drop="if_binary",sparse_output=False, handle_unknown="error"), cat_vars),
+        (ohe, cat_vars),
         remainder="drop"
         )
     X      = basic_preproc.fit_transform(df)
+
+    cat_vars = basic_preproc["onehotencoder"].get_feature_names_out().tolist()
     X_df   = pd.DataFrame(X,columns=num_vars + cat_vars)
-    X_df.mode_font *=font_scale
+
+    font_cols = [col for col in X_df.columns if "font" in col]
+    X_df[font_cols] *=font_scale
+
     return X_df
 
 def calc_normal_dists(clusts, X ):
