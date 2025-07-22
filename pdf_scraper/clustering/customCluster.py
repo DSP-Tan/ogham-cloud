@@ -23,12 +23,9 @@ if __name__=="__main__":
     # We need to choose now the rows where the number of words is below 4
     word_mask = df["n_words"].to_numpy() < 4
     
-    # These cols of the df are not informative for text-block clustering.
     cols = ['x0', 'y0', 'y1', 'w',  'font_size', 'common_font']
-    bad_nums = [col for col in df.select_dtypes(include="number") if col not in cols]
-    bad_cats = [col for col in df.select_dtypes(include="object") if col not in cols]
     
-    X_df   = preproc(bad_nums, bad_cats, df, font_scale=2)
+    X_df   = preproc(cols, df, font_scale=2)
     X      = np.array(X_df)
     X_cols = X_df.columns.to_list()
     
@@ -41,7 +38,7 @@ if __name__=="__main__":
     best_clustering = np.argmin(dists,axis=1)
     inertia         = calc_inertia(dists)
     
-    # Exclude lines with n_words < 4 from initial clusters list.
+    # Loop over initial cluster positions excluding lines with n_words < 4.
     for clust0, clust1 in itertools.combinations(X[~word_mask], k):
         clusts = np.array([clust0, clust1])
         
@@ -72,12 +69,9 @@ def reblock_lines(lines, verbose=False):
     # We need to choose now the rows where the number of words is below 4
     word_mask = line_df["n_words"].to_numpy() < 4
     
-    # These cols of the df are not informative for text-block clustering.
-    bad_nums = ["n_spans","dL","x1","n_words","h", "mode_font_size"]
-    bad_cats = ["font_list","text","mode_font"]
-
+    cols = ['x0', 'y0', 'y1', 'w', 'common_font']
     
-    X_df   = preproc(bad_nums, bad_cats, line_df, font_scale=2)
+    X_df   = preproc(cols, line_df, font_scale=2)
     X      = np.array(X_df)
     X_cols = X_df.columns.to_list()
     

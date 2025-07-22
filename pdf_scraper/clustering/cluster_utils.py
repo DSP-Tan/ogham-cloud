@@ -8,9 +8,9 @@ from sklearn.compose       import make_column_transformer
 def print_clusters(clusts,X_cols, k):
     print( pd.DataFrame(clusts,columns=X_cols,index=["clust0","clust1"]).head(k) )
     
-def preproc(bad_nums,bad_cats, df, font_scale=1):
-    num_vars = [ col for col in df.select_dtypes(include=np.number).columns if col not in bad_nums ] 
-    cat_vars = [ col for col in df.select_dtypes(include='object').columns  if col not in bad_cats ] 
+def preproc(cols, df, font_scale=1):
+    num_vars = [ col for col in df.select_dtypes(include=np.number).columns if col in cols] 
+    cat_vars = [ col for col in df.select_dtypes(include='object').columns  if col in cols] 
     
     basic_preproc = make_column_transformer(
         (StandardScaler(), num_vars),
