@@ -8,7 +8,7 @@ from pathlib import Path
 if __name__=="__main__":
     doc          = open_exam(2024)
     df = get_doc_line_df(doc)
-    page_df = df[df.page==2].copy()
+    page_df = df[df.page==3].copy()
     pd.set_option("display.float_format", "{:.2f}".format)
 
     print(page_df[["text","w","y0","x0","dL","mode_font", "font_size"]].head(50))
