@@ -169,7 +169,7 @@ def identify_footers(doc_df):
 def identify_section_headers(doc_df):
     """
     Section Titles will have the following properties:
-    - Centred
+    - Centred (if one line)
     - Larger than the median text size on page.
     - Near top
     - Specific text saying Section I or Section II or comprehending or composing.
