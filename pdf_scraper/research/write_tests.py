@@ -28,13 +28,12 @@ for year in range(2001,2026):
     identify_text_headers(df, doc_width)
 
     test_categories = ["dual_col", "caption","instruction", "footer", "section","title"]
+    cat = "section"
     
-    result = df[df.section == 1]
+    result = df[df[cat] == 1]
 
     print(f"if year=={year}:")
     for i, row in result.iterrows():
         print(f"    assert doc_df.loc[{i}].text=='{row.text}'")
-    print("--"*40)
-
 
     doc.close()
