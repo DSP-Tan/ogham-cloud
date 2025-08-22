@@ -30,10 +30,11 @@ for year in range(2001,2026):
     test_categories = ["dual_col", "caption","instruction", "footer", "section","title"]
     cat = "section"
     
-    result = df[df[cat] == 1]
+    test_df = df[df[cat] == 1]
 
     print(f"if year=={year}:")
-    for i, row in result.iterrows():
-        print(f"    assert doc_df.loc[{i}].text=='{row.text}'")
+    print(f"    assert len(test_df)=='{len(test_df)}'")
+    for i, row in test_df.iterrows():
+        print(f"    assert test_df.loc[{i}].text=='{row.text}'")
 
     doc.close()
