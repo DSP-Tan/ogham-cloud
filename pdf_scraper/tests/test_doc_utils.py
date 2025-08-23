@@ -269,102 +269,127 @@ def test_identify_section_headers_content():
         identify_section_headers(doc_df)
         test_df = doc_df[doc_df.section==1].copy()
     if year==2001:
+        assert len(test_df)==4
         assert test_df.loc[31].text=='SECTION I'
         assert test_df.loc[32].text=='COMPREHENDING (100 marks)'
         assert test_df.loc[381].text=='SECTION II'
         assert test_df.loc[382].text=='COMPOSING (100 marks) '
     if year==2002:
+        assert len(test_df)==4
         assert test_df.loc[23].text=='SECTION I '
         assert test_df.loc[24].text=='COMPREHENDING (100 marks) '
         assert test_df.loc[290].text=='SECTION II '
         assert test_df.loc[291].text=='COMPOSING (100 marks) '
     if year==2003:
+        assert len(test_df)==4
         assert test_df.loc[24].text=='SECTION I'
         assert test_df.loc[25].text=='COMPREHENDING (100 marks)'
         assert test_df.loc[340].text=='SECTION II'
         assert test_df.loc[341].text=='COMPOSING (100 marks)'
     if year==2004:
+        assert len(test_df)==4
         assert test_df.loc[24].text=='SECTION I '
         assert test_df.loc[25].text=='COMPREHENDING (100 marks) '
         assert test_df.loc[369].text=='SECTION II '
         assert test_df.loc[370].text=='COMPOSING (100 marks) '
     if year==2005:
+        assert len(test_df)==4
         assert test_df.loc[24].text=='SECTION I '
         assert test_df.loc[25].text=='COMPREHENDING (100 marks) '
         assert test_df.loc[422].text=='SECTION II '
         assert test_df.loc[423].text=='COMPOSING (100 marks) '
     if year==2006:
+        assert len(test_df)==4
         assert test_df.loc[24].text=='SECTION I '
         assert test_df.loc[25].text=='COMPREHENDING (100 Marks) '
         assert test_df.loc[347].text=='SECTION II '
         assert test_df.loc[348].text=='COMPOSING (100 marks) '
     if year==2007:
+        assert len(test_df)==4
         assert test_df.loc[24].text=='SECTION I '
         assert test_df.loc[25].text=='COMPREHENDING (100 marks) '
         assert test_df.loc[324].text=='SECTION II '
         assert test_df.loc[325].text=='COMPOSING (100 marks) '
     if year==2008:
+        assert len(test_df)==4
         assert test_df.loc[24].text=='SECTION 1 '
         assert test_df.loc[25].text=='COMPREHENDING (100 marks) '
         assert test_df.loc[317].text=='SECTION II '
         assert test_df.loc[318].text=='COMPOSING (100 marks) '
     if year==2009:
+        assert len(test_df)==4
         assert test_df.loc[24].text=='SECTION I '
         assert test_df.loc[25].text=='COMPREHENDING (100 marks) '
         assert test_df.loc[415].text=='SECTION II '
         assert test_df.loc[416].text=='COMPOSING (100 marks) '
     if year==2010:
+        assert len(test_df)==4
         assert test_df.loc[24].text=='SECTION 1 '
         assert test_df.loc[25].text=='COMPREHENDING (100 marks) '
         assert test_df.loc[413].text=='SECTION II '
         assert test_df.loc[414].text=='COMPOSING (100 marks) '
     if year==2011:
+        assert len(test_df)==4
         assert test_df.loc[24].text=='SECTION 1 '
         assert test_df.loc[25].text==' COMPREHENDING (100 marks) '
         assert test_df.loc[412].text=='SECTION II '
         assert test_df.loc[413].text=='COMPOSING (100 marks) '
     if year==2012:
+        assert len(test_df)==2
         assert test_df.loc[24].text=='SECTION 1                     COMPREHENDING                      (100 marks) '
         assert test_df.loc[430].text=='SECTION II                            COMPOSING                          (100 marks) '
     if year==2013:
+        assert len(test_df)==2
         assert test_df.loc[24].text=='SECTION 1                       COMPREHENDING                        (100 marks) '
         assert test_df.loc[440].text=='SECTION II                            COMPOSING                        (100 marks) '
     if year==2014:
+        assert len(test_df)==2
         assert test_df.loc[24].text=='SECTION 1                        COMPREHENDING                       (100 marks) '
         assert test_df.loc[455].text=='SECTION II                            COMPOSING                        (100 marks) '
     if year==2015:
+        assert len(test_df)==2
         assert test_df.loc[24].text=='SECTION I                        COMPREHENDING                       (100 marks) '
         assert test_df.loc[463].text=='SECTION II                               COMPOSING                           (100 marks) '
     if year==2016:
+        assert len(test_df)==2
         assert test_df.loc[24].text=='SECTION 1                  COMPREHENDING               (100 marks) '
         assert test_df.loc[453].text=='SECTION II                               COMPOSING                           (100 marks) '
     if year==2017:
+        assert len(test_df)==2
         assert test_df.loc[25].text=='SECTION I                   COMPREHENDING               (100 marks) '
         assert test_df.loc[377].text=='SECTION II                           COMPOSING                    (100 marks) '
     if year==2018:
+        assert len(test_df)==2
         assert test_df.loc[24].text=='SECTION I                       COMPREHENDING                    (100 marks) '
         assert test_df.loc[347].text=='SECTION II                                COMPOSING                        (100 marks) '
     if year==2019:
+        assert len(test_df)==2
         assert test_df.loc[25].text=='SECTION I                       COMPREHENDING                    (100 marks) '
         assert test_df.loc[410].text=='SECTION II                                COMPOSING                        (100 marks) '
     if year==2020:
+        assert len(test_df)==2
         assert test_df.loc[24].text=='SECTION I                       COMPREHENDING                    (100 marks) '
         assert test_df.loc[375].text=='SECTION II                                COMPOSING                        (100 marks) '
     if year==2021:
+        assert len(test_df)==2
         assert test_df.loc[24].text=='SECTION I                       COMPREHENDING                    (40 marks) '
         assert test_df.loc[424].text=='SECTION II                                COMPOSING                        (100 marks) '
     if year==2022:
+        assert len(test_df)==2
         assert test_df.loc[35].text=='SECTION I                         COMPREHENDING                    (40 marks) '
         assert test_df.loc[461].text=='SECTION II                                COMPOSING                        (100 marks) '
     if year==2023:
+        assert len(test_df)==4
         assert test_df.loc[28].text=='SECTION I'
         assert test_df.loc[29].text=='COMPREHENDING'
         assert test_df.loc[30].text=='(100 marks) '
         assert test_df.loc[428].text=='SECTION II                                COMPOSING                         (100 marks) '
     if year==2024:
+        assert len(test_df)==2
         assert test_df.loc[24].text=='SECTION I                       COMPREHENDING                    (100 marks) '
         assert test_df.loc[462].text=='SECTION II                          COMPOSING                              (100 marks) '
     if year==2025:
+        assert len(test_df)==4
         assert test_df.loc[27].text=='SECTION I '
         assert test_df.loc[28].text=='COMPREHENDING '
         assert test_df.loc[29].text=='(100 marks) '
