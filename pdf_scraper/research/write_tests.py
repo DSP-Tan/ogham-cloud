@@ -38,6 +38,6 @@ for year in range(2001,2026):
         print(f"elif year=={year}:")
     print(f"    assert len(test_df)=={len(test_df)}")
     for i, row in test_df.iterrows():
-        print(f"    assert test_df.loc[{i}].text=='{row.text}'")
+        print(f"    assert test_df.loc[{i}].text=={repr(row.text)}")
 
     doc.close()
