@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 from PIL import Image
 import re
+from sklearn.cluster import DBSCAN
 from pdf_scraper.block_utils import clean_blocks
 from pdf_scraper.line_utils  import get_line_df, get_line_text
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
@@ -217,3 +218,48 @@ def identify_text_headers(doc_df, doc_width):
 
     return doc_df
 
+
+def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
+    """
+    Here we identify if there are lines which are not vertically contiguous
+    to other lines in the category that has been identified, and we remove
+    them from the category. 
+    
+    This function assumes that a dataframe with rows ordered by y0 is input.
+    """
+    for i in np.unique(df.page):
+        page_df = df[(df.page ==i) & (df[cat]==1) ].copy()
+        median_dL = page_df.dL.median()
+        scan = DBSCAN(eps=median_dL*1.15, min_samples=3).fit(page_df[["y0"]])
+        if len(np.unique(scan.labels_)) == 1:
+            continue
+        else:
+            not_contig_group = (scan.labels_ != scan.labels_[0])
+            page_df.loc[not_contig_group, cat] = 0
+            df[df.page==i] = page_df
+    return df
+
+def identify_subtitles(doc_df):
+    if doc_df.section.sum() == 0:
+        raise runtimeerror("assign section headings first")
+    if doc_df.title.sum() == 0:
+        raise runtimeerror("assign text headers first")
+    
+    median_size   = doc_df.font_size.median()
+    standard_font = doc_df.mode_font.mode()[0]
+
+    bold_font     = doc_df.mode_font.str.contains("Bold")
+    pages         = (doc_df.page > 1) & (doc_df.page <9)
+    title_on_page = doc_df.groupby('page')['title'].transform('sum') >0
+    uncategorised = (doc_df.section==0) & (doc_df.caption ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0)
+    after_headers = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=6
+
+    mask = bold_font & pages & uncategorised & after_headers & title_on_page
+
+    doc_df.loc[mask, "subtitle"] = 1 
+
+    return doc_df
+
+    
+
+    
