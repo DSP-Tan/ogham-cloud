@@ -10,6 +10,7 @@ scikit-learn==1.6.1
 PyMuPDF==1.25.5
 
 
+# Dev
 ipdb==0.13.13
 ipykernel==6.29.5
 ipython==9.1.0
@@ -17,3 +18,6 @@ ipython==9.1.0
 pytest==8.3.5
 
 pillow==11.2.1
+
+matplotlib
+seaborn
