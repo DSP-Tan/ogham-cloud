@@ -200,13 +200,12 @@ def detect_bad_block(block: dict,king_pink: Rect):
 
 def split_block(block: dict):
     """
-    Splits block according to text formatting and removes any blank lines if they exist.
+    Splits block according to re-clustered lines and removes any blank lines if they exist.
     """
     number = block["number"]
     type   = block["type"]
     lines   = [line for line in block["lines"] if not line_is_empty(line)]
     block_labels = reblock_lines(lines)
-
 
     lines0=[]
     lines1=[]
@@ -260,6 +259,14 @@ def rebox_blocks(blocks: list[dict]):
 
 
 def preproc_blocks(blocks: list[dict], king_pink: Rect):
+    """
+    This function preprocesses the input list of blocks by:
+    1. cleaning the blocks (remove empty blocks, and empty lines within blocks)
+    2. re-boxes the blocks to account for removed whtiespace (re defines bbox)
+    3. checks for blocks which are badly made by pymupdf blocking algorithm. (mix of dual col and non dual col) 
+       Splits based on vertical space discontinuity.
+    4. Splits any very long columnar blocks based on vertical line-space discontinuities.
+    """
     blocks = clean_blocks(blocks)
     rebox_blocks(blocks)
     if not king_pink:
