@@ -127,6 +127,7 @@ def get_line_df(lines):
     footer         = [0]*len(lines)
     section        = [0]*len(lines)
     title          = [0]*len(lines)
+    subtitle       = [0]*len(lines)
 
 
     data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,
@@ -134,14 +135,13 @@ def get_line_df(lines):
     "text":text, "font_sizes":font_size_list, "mode_font_size":mode_font_size,
     "font_size":font_size, "dual_col":dual_col, "caption":caption,
     "instruction":instruction, "footer":footer, "section":section,
-    "title":title}
+    "title":title, "subtitle":subtitle}
     return pd.DataFrame(data_dict)
 
 def clean_line_df(df):
     buff_mask = is_buffered_line(df, 6)
     df.loc[buff_mask, ["x0", "x1", "text"]] = df.loc[buff_mask].apply(re_box_line, axis=1)
     return df
-    
 
 def get_clean_bins(x:pd.Series,bin_width:float):
     '''
