@@ -7,7 +7,7 @@ import sys, re
 
 from pdf_scraper.block_utils import identify_dual_column, get_block_text, sort_dual_column_blocks
 from pdf_scraper.doc_utils   import open_exam, get_doc_line_df, identify_section_headers, identify_text_headers
-from pdf_scraper.doc_utils   import identify_footers, identify_instructions
+from pdf_scraper.doc_utils   import identify_footers, identify_instructions, identify_subtitles
 from pdf_scraper.block_utils import is_empty_block, clean_blocks, print_block_table, get_block_table, rebox_blocks
 from pdf_scraper.block_utils import preproc_blocks
 from pdf_scraper.draw_utils  import get_pink_boundary, get_fill_df, in_the_pink
@@ -18,7 +18,6 @@ for year in range(2001,2026):
 
     doc = open_exam(year, "english", "al",1)
     df = get_doc_line_df(doc)
-    
     doc_width     = doc[0].rect.width
     
     df = clean_line_df(df)
@@ -26,14 +25,18 @@ for year in range(2001,2026):
     identify_instructions(df)
     identify_section_headers(df)
     identify_text_headers(df, doc_width)
+    identify_subtitles(df)
 
     test_categories = ["dual_col", "caption","instruction", "footer", "section","title"]
-    cat = "section"
+    cat = "subtitle"
     
     test_df = df[df[cat] == 1]
-
-    print(f"if year=={year}:")
-    print(f"    assert len(test_df)=='{len(test_df)}'")
+    
+    if year==2001:
+        print(f"if year=={year}:")
+    else:
+        print(f"elif year=={year}:")
+    print(f"    assert len(test_df)=={len(test_df)}")
     for i, row in test_df.iterrows():
         print(f"    assert test_df.loc[{i}].text=='{row.text}'")
 
