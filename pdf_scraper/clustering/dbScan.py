@@ -6,13 +6,19 @@ from pdf_scraper.doc_utils import open_exam, get_doc_line_df
 from pathlib import Path
 
 if __name__=="__main__":
-    doc          = open_exam(2024)
+    year = 2024
+    page_num = 3
+    print(f"Looking at English Paper 1 {year} page {page_num}")
+
+    doc          = open_exam(year)
     df = get_doc_line_df(doc)
-    page_df = df[df.page==3].copy()
+    page_df = df[df.page==page_num].copy()
     pd.set_option("display.float_format", "{:.2f}".format)
 
-    print(page_df[["text","w","y0","x0","dL","mode_font", "font_size"]].head(50))
-    print(page_df[["text","w","y0","x0","dL","mode_font", "font_size"]].tail(20))
+    print("Here are the top 50 extracted lines: ")
+    print(page_df[["text","w","y0","y1","x0","x1","dL","mode_font", "font_size"]].head(20))
+    print("Here are the bottom 20 extracted lines:")
+    print(page_df[["text","w","y0","y1","x0","x1","dL","mode_font", "font_size"]].tail(20))
     page_df.dropna(inplace=True)
     
     #cols = ['x0', 'y0', 'y1', 'w','x1', 'font_size', 'mode_font']
@@ -40,6 +46,7 @@ if __name__=="__main__":
     print(np.unique(dbscan.labels_))
     print(page_df[["text"]+cols+["dL","cluster"]].head(50))
 
+    np.unique(dbscan.labels_)
     to_print = ["text"]+cols+["dL"]
     for i in np.unique(dbscan.labels_):
         print(f"Cluster {i}")
