@@ -95,3 +95,13 @@ the lines of all the documents (concatenated doc_df s for each year). That way w
 able to see what they have in common, the properties of their titles, footers, etc. 
 
 You could do it by page perhaps if there are similarities across pages. 
+
+# Line method
+
+Finally we decided to go forward with the line method so that we will have full liberty to
+resolve any problems how we wish. Using blocks we had found we already had to break them up
+in order to solve issues that were arising because of pymu pdfs methods.
+
+## miscellany
+
+Consider clearing out empty spans and reboxing any lines that are like that.
