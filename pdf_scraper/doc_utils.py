@@ -227,36 +227,64 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
     
     This function assumes that a dataframe with rows ordered by y0 is input.
     """
-    for i in np.unique(df.page):
+    line_scale = 1.25
+    pages = np.unique(df[df[cat]==1].page)
+    dLs=[]
+    for page in pages:
+        temp_df = df[(df.page==page) & df[cat]==1].copy()
+        y0s = temp_df.loc[ temp_df.index[0:-2] ].y0
+        y1s = temp_df.loc[ temp_df.index[1:-1] ].y0
+        dLs.append(np.array(y1s) - np.array(y0s) )
+    dL = np.median(np.concat(dLs,axis=0) )
+    #dL = df[df[cat]==1].dL.median()
+    for i in pages:
         page_df = df[(df.page ==i) & (df[cat]==1) ].copy()
-        median_dL = page_df.dL.median()
-        scan = DBSCAN(eps=median_dL*1.15, min_samples=3).fit(page_df[["y0"]])
+        #dL = page_df.dL.median()
+        scan = DBSCAN(eps=dL*line_scale, min_samples=3).fit(page_df[["y0"]])
+        # If there are only 2 lines in the subtitle the above dbscan will not be able to
+        # find any clusters.
+        if len(np.unique(scan.labels_)) == 1:
+            scan = DBSCAN(eps=dL*line_scale, min_samples=2).fit(page_df[["y0"]])
         if len(np.unique(scan.labels_)) == 1:
             continue
         else:
             not_contig_group = (scan.labels_ != scan.labels_[0])
             page_df.loc[not_contig_group, cat] = 0
-            df[df.page==i] = page_df
+            df.loc[page_df.index, cat] = page_df[cat]
     return df
 
-def identify_subtitles(doc_df):
+
+def identify_subtitles(doc_df,doc_width):
     if doc_df.section.sum() == 0:
         raise runtimeerror("assign section headings first")
     if doc_df.title.sum() == 0:
         raise runtimeerror("assign text headers first")
     
+
     median_size   = doc_df.font_size.median()
     standard_font = doc_df.mode_font.mode()[0]
 
+    doc_df["round_y0"] = doc_df.y0.map(round)
+    doc_df["counts"]   = doc_df.groupby(["page","round_y0"])["x0"].transform('count')
+
+    single_line   = (doc_df.counts == 1)
     bold_font     = doc_df.mode_font.str.contains("Bold")
+    starts_left   = doc_df.x0 < doc_width/2
     pages         = (doc_df.page > 1) & (doc_df.page <9)
+    #pages         = (doc_df.page == 2) | (doc_df.page ==4) | (doc_df.page ==6) | (doc_df.page ==8)
     title_on_page = doc_df.groupby('page')['title'].transform('sum') >0
     uncategorised = (doc_df.section==0) & (doc_df.caption ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0)
     after_headers = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=6
 
-    mask = bold_font & pages & uncategorised & after_headers & title_on_page
+    mask = pages & uncategorised & after_headers & title_on_page 
+    
+    mask2 = ( bold_font.astype(int) + starts_left.astype(int) + single_line.astype(int) ) >=2
 
-    doc_df.loc[mask, "subtitle"] = 1 
+    doc_df.loc[mask & mask2 , "subtitle"] = 1 
+    
+    doc_df = remove_non_contiguous_lines(doc_df, "subtitle")
+    
+
 
     return doc_df
 

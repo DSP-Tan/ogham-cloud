@@ -74,7 +74,7 @@ def test_identify_footers():
 
 
 
-def test_identify_text_headers():
+def test_identify_text_titles():
     for year in range(2001,2026):
         doc = open_exam(year,"english","al",1)
         width = doc[0].rect.width
@@ -251,7 +251,7 @@ def test_identify_text_headers():
             assert test_df.iloc[2].text=='TEXT 3 – Planet Earth from the Perspective of Space '
 
 
-def test_identify_section_headers_content():
+def test_identify_section_headers():
     for year in range(2001,2026):
         doc = open_exam(year,"english","al",1)
         width = doc[0].rect.width
@@ -388,7 +388,7 @@ def test_identify_section_headers_content():
             assert test_df.loc[481].text=='SECTION II                          COMPOSING                        (100 marks) '
 
 
-def test_identify_text_headers_content():
+def test_identify_text_subtitles():
     for year in range(2001,2026):
         doc = open_exam(year, "english", "al",1)
         df = get_doc_line_df(doc)
@@ -399,148 +399,157 @@ def test_identify_text_headers_content():
         identify_instructions(df)
         identify_section_headers(df)
         identify_text_headers(df, doc_width)
-        identify_subtitles(df)
+        identify_subtitles(df,doc_width)
         test_df = df[df.subtitle==1].copy()
         if year==2001:
-            assert len(test_df)==11
-            assert test_df.loc[35].text=='The following extracts are adapted from the book, Being Irish, in which a number of contributors'
-            assert test_df.loc[36].text=='give their responses to the question ‘What does it mean to be Irish today?’ The book was'
-            assert test_df.loc[37].text=='published in 2000, and its editor is Paddy Logue.'
-            assert test_df.loc[38].text=='Jennifer Johnston, is a'
-            assert test_df.loc[39].text=='Polly Devlin, is a writer,'
-            assert test_df.loc[160].text=='The following text is adapted from the inauguration speech of President Mary Robinson, the'
-            assert test_df.loc[161].text=='ﬁrst woman to hold the office of President of Ireland. The speech was delivered on December'
-            assert test_df.loc[162].text=='3rd, 1990.'
-            assert test_df.loc[251].text=='The following text is a narrative (in abridged form) taken from the poet Ciaran Carson’s book'
-            assert test_df.loc[252].text=='The Star Factory which tells the story of Ulster and its people. The author tells us he received'
-            assert test_df.loc[253].text=='this story from his father. The book was ﬁrst published in 1997.'
+            assert len(test_df)==9
+            assert test_df.iloc[0].text=='The following extracts are adapted from the book, Being Irish, in which a number of contributors'
+            assert test_df.iloc[1].text=='give their responses to the question ‘What does it mean to be Irish today?’ The book was'
+            assert test_df.iloc[2].text=='published in 2000, and its editor is Paddy Logue.'
+            assert test_df.iloc[3].text=='The following text is adapted from the inauguration speech of President Mary Robinson, the'
+            assert test_df.iloc[4].text=='ﬁrst woman to hold the office of President of Ireland. The speech was delivered on December'
+            assert test_df.iloc[5].text=='3rd, 1990.'
+            assert test_df.iloc[6].text=='The following text is a narrative (in abridged form) taken from the poet Ciaran Carson’s book'
+            assert test_df.iloc[7].text=='The Star Factory which tells the story of Ulster and its people. The author tells us he received'
+            assert test_df.iloc[8].text=='this story from his father. The book was ﬁrst published in 1997.'
         elif year==2002:
-            assert len(test_df)==6
-            assert test_df.loc[107].text=='Novelist, Penelope Lively, remembers her family home through the wealth of little things it contained.  '
-            assert test_df.loc[108].text=='This article was published in The Sunday Times of August 26, 2001. '
-            assert test_df.loc[193].text=='This text is an extract from the novel, The Grapes of Wrath, by the American writer, John Steinbeck.  '
-            assert test_df.loc[194].text=='The novel tells the story of poor farming families who are forced to travel hundreds of miles across '
-            assert test_df.loc[195].text=='America in search of a living.  In this extract we learn how the desire of families to support one '
-            assert test_df.loc[196].text=='another leads to the setting up of a society in itself.  The novel was first published in 1939. '
+            assert len(test_df)==10
+            assert test_df.iloc[0].text=='The following text consists of a written and a visual element.  The written part of this text is adapted  '
+            assert test_df.iloc[1].text=='from  a  preface  by  the  American poet,  Carl  Sandburg,  to a collection of photographs entitled The '
+            assert test_df.iloc[2].text=='Family of Man.  The  visual  images  are  taken from the  exhibition which  was  first  shown  in  the '
+            assert test_df.iloc[3].text=='Museum of Modern Art, New York, in 1955. '
+            assert test_df.iloc[4].text=='Novelist, Penelope Lively, remembers her family home through the wealth of little things it contained.  '
+            assert test_df.iloc[5].text=='This article was published in The Sunday Times of August 26, 2001. '
+            assert test_df.iloc[6].text=='This text is an extract from the novel, The Grapes of Wrath, by the American writer, John Steinbeck.  '
+            assert test_df.iloc[7].text=='The novel tells the story of poor farming families who are forced to travel hundreds of miles across '
+            assert test_df.iloc[8].text=='America in search of a living.  In this extract we learn how the desire of families to support one '
+            assert test_df.iloc[9].text=='another leads to the setting up of a society in itself.  The novel was first published in 1939. '
         elif year==2003:
-            assert len(test_df)==7
-            assert test_df.loc[28].text=='The following is an extract from The Jason Voyage in which the author, Tim Severin, sets out to test'
-            assert test_df.loc[29].text=='whether the legendary journey of Jason’s search for the Golden Fleece could have happened in fact.'
-            assert test_df.loc[30].text=='The book was published in 1985.'
-            assert test_df.loc[181].text=='This extract is adapted from The Golden Horde, Travels from the Himalaya to Karpathos,'
-            assert test_df.loc[182].text=='published in 1997, in which sixty-five year old Sheila Paine describes her travels through some of'
-            assert test_df.loc[183].text=='the turbulent territories of the former Soviet Union.  The extract begins at the point when Sheila'
-            assert test_df.loc[184].text=='returns to Saratov station to try once again to buy a ticket for a train journey.'
+            assert len(test_df)==7  # Text three has no subtitles
+            assert test_df.iloc[0].text=='The following is an extract from The Jason Voyage in which the author, Tim Severin, sets out to test'
+            assert test_df.iloc[1].text=='whether the legendary journey of Jason’s search for the Golden Fleece could have happened in fact.'
+            assert test_df.iloc[2].text=='The book was published in 1985.'
+            assert test_df.iloc[3].text=='This extract is adapted from The Golden Horde, Travels from the Himalaya to Karpathos,'
+            assert test_df.iloc[4].text=='published in 1997, in which sixty-five year old Sheila Paine describes her travels through some of'
+            assert test_df.iloc[5].text=='the turbulent territories of the former Soviet Union.  The extract begins at the point when Sheila'
+            assert test_df.iloc[6].text=='returns to Saratov station to try once again to buy a ticket for a train journey.'
         elif year==2004:
             assert len(test_df)==11
-            assert test_df.loc[28].text=='The following text is adapted from the writings of Vivian Paley, a teacher who has written over '
-            assert test_df.loc[29].text=='many years about the importance of play in the lives of small children. Paley’s books include '
-            assert test_df.loc[30].text=='descriptions of how children play and the stories they tell.  The extracts used in this text are '
-            assert test_df.loc[31].text=='taken from her books, The Boy Who Would Be a Helicopter (1990) and You Can’t Say You '
-            assert test_df.loc[32].text=='Can’t Play (1992). '
-            assert test_df.loc[146].text=='The following text is adapted from the novel, Sons and Lovers, by D.H. Lawrence, which tells '
-            assert test_df.loc[147].text=='the story of Paul Morel who, in this extract, begins work at Thomas Jordan & Son— suppliers of '
-            assert test_df.loc[148].text=='elasticated stockings. The novel was first published in 1913. '
-            assert test_df.loc[290].text=='The following text consists of a written and a visual element. The visual part of the text is a '
-            assert test_df.loc[291].text=='selection of images of people at work. The written element is an extract from a magazine article on '
-            assert test_df.loc[292].text=='the topic, Work and Play. '
+            assert test_df.iloc[0].text=='The following text is adapted from the writings of Vivian Paley, a teacher who has written over '
+            assert test_df.iloc[1].text=='many years about the importance of play in the lives of small children. Paley’s books include '
+            assert test_df.iloc[2].text=='descriptions of how children play and the stories they tell.  The extracts used in this text are '
+            assert test_df.iloc[3].text=='taken from her books, The Boy Who Would Be a Helicopter (1990) and You Can’t Say You '
+            assert test_df.iloc[4].text=='Can’t Play (1992). '
+            assert test_df.iloc[5].text=='The following text is adapted from the novel, Sons and Lovers, by D.H. Lawrence, which tells '
+            assert test_df.iloc[6].text=='the story of Paul Morel who, in this extract, begins work at Thomas Jordan & Son— suppliers of '
+            assert test_df.iloc[7].text=='elasticated stockings. The novel was first published in 1913. '
+            assert test_df.iloc[8].text=='The following text consists of a written and a visual element. The visual part of the text is a '
+            assert test_df.iloc[9].text=='selection of images of people at work. The written element is an extract from a magazine article on '
+            assert test_df.iloc[10].text=='the topic, Work and Play. '
         elif year==2005:
-            assert len(test_df)==11
-            assert test_df.loc[28].text=='Margaret Forster writes about her grandmother, Margaret Ann Hind, a domestic servant in '
-            assert test_df.loc[29].text=='Carlisle, a town in the north of England, in the 1890s. Her book is called Hidden Lives – A '
-            assert test_df.loc[30].text=='Family Memoir. '
-            assert test_df.loc[173].text=='The following text consists of a written and visual element. The written text is adapted from an '
-            assert test_df.loc[174].text=='introduction by documentary photographer, Jenny Matthews, to her book of photographs entitled '
-            assert test_df.loc[175].text=='Women and War. '
-            assert test_df.loc[248].text=='Some people’s lives seem far from ordinary. Modelled on articles from a number of celebrity '
-            assert test_df.loc[249].text=='magazines, the text below was written by a Leaving Certificate student. It offers a glimpse into the '
-            assert test_df.loc[250].text=='lifestyle of imaginary rock star, Eva Maguire. '
-            assert test_df.loc[251].text=='World exclusive ! Irish Rock Diva speaks to readers from '
-            assert test_df.loc[252].text=='her Italian villa. '
-        elif year==2006:
             assert len(test_df)==9
-            assert test_df.loc[28].text=='In this extract (adapted from A Border Station, by Shane Connaughton) a father and son are '
-            assert test_df.loc[29].text=='cutting down a tree.  The father, a garda sergeant, has been given permission by Lady Sarah, a '
-            assert test_df.loc[30].text=='member of the landed gentry, to cut down a small tree on her lands.  However, he decides to '
-            assert test_df.loc[31].text=='ignore her wishes and cut down a magnificent beech tree on the avenue leading to the Great '
-            assert test_df.loc[32].text=='House.  We join the story as the tree falls…  '
-            assert test_df.loc[155].text=='Jan Stevens is a ghost writer; that is, someone who writes books that are published as the work of '
-            assert test_df.loc[156].text=='someone else. '
-            assert test_df.loc[157].text=='On Ghost Writing '
-            assert test_df.loc[280].text=='The following text consists of a visual and a written element. '
+            assert test_df.iloc[0].text=='Margaret Forster writes about her grandmother, Margaret Ann Hind, a domestic servant in '
+            assert test_df.iloc[1].text=='Carlisle, a town in the north of England, in the 1890s. Her book is called Hidden Lives – A '
+            assert test_df.iloc[2].text=='Family Memoir. '
+            assert test_df.iloc[3].text=='The following text consists of a written and visual element. The written text is adapted from an '
+            assert test_df.iloc[4].text=='introduction by documentary photographer, Jenny Matthews, to her book of photographs entitled '
+            assert test_df.iloc[5].text=='Women and War. '
+            assert test_df.iloc[6].text=='Some people’s lives seem far from ordinary. Modelled on articles from a number of celebrity '
+            assert test_df.iloc[7].text=='magazines, the text below was written by a Leaving Certificate student. It offers a glimpse into the '
+            assert test_df.iloc[8].text=='lifestyle of imaginary rock star, Eva Maguire. '
+            # These we will call subtile 2
+            #assert test_df.loc[251].text=='World exclusive ! Irish Rock Diva speaks to readers from '   # if you incldue "starts_left" in conditions for subtitles this will not be captured.
+            #assert test_df.loc[252].text=='her Italian villa. '
+        elif year==2006:
+            assert len(test_df)==8 # ideally 8
+            assert test_df.iloc[0].text=='In this extract (adapted from A Border Station, by Shane Connaughton) a father and son are '
+            assert test_df.iloc[1].text=='cutting down a tree.  The father, a garda sergeant, has been given permission by Lady Sarah, a '
+            assert test_df.iloc[2].text=='member of the landed gentry, to cut down a small tree on her lands.  However, he decides to '
+            assert test_df.iloc[3].text=='ignore her wishes and cut down a magnificent beech tree on the avenue leading to the Great '
+            assert test_df.iloc[4].text=='House.  We join the story as the tree falls…  '
+            assert test_df.iloc[5].text=='Jan Stevens is a ghost writer; that is, someone who writes books that are published as the work of '
+            assert test_df.iloc[6].text=='someone else. '
+            #assert test_df.iloc[7].text=='On Ghost Writing ' # Ideally this would be excluded by the dbscan
+            assert test_df.iloc[7].text=='The following text consists of a visual and a written element. '
         elif year==2007:
-            assert len(test_df)==6
-            assert test_df.loc[28].text=='The following text is based on extracts from the recent publication, “1000 Films to Change your '
-            assert test_df.loc[29].text=='Life”, edited by Simon Cropper.  '
-            assert test_df.loc[157].text=='In 1930, wandering through London for a series of magazine articles, Virginia Woolf found a '
-            assert test_df.loc[158].text=='city alive with bustling activity and excitement.  Here, novelist Monica Ali takes a 21st century '
-            assert test_df.loc[159].text=='stroll in Woolf’s footsteps – and seventy-five years later finds London humming to a different '
-            assert test_df.loc[160].text=='tune.  '
+            assert len(test_df)==6  # Text 3 has no subtitles
+            assert test_df.iloc[0].text=='The following text is based on extracts from the recent publication, “1000 Films to Change your '
+            assert test_df.iloc[1].text=='Life”, edited by Simon Cropper.  '
+            assert test_df.iloc[2].text=='In 1930, wandering through London for a series of magazine articles, Virginia Woolf found a '
+            assert test_df.iloc[3].text=='city alive with bustling activity and excitement.  Here, novelist Monica Ali takes a 21st century '
+            assert test_df.iloc[4].text=='stroll in Woolf’s footsteps – and seventy-five years later finds London humming to a different '
+            assert test_df.iloc[5].text=='tune.  '
         elif year==2008:
-            assert len(test_df)==6
-            assert test_df.loc[28].text=='This text is adapted from Jon Savage’s book, “Teenage, the Creation of Youth, 1875 – 1945”,  '
-            assert test_df.loc[29].text=='in which he traces the history of the modern teenager. '
-            assert test_df.loc[168].text=='This text is taken from Clare Kilroy’s novel, “Tenderwire”, narrated in the voice of Eva  '
-            assert test_df.loc[169].text=='Tyne, an Irish violinist living and working in New York. The story involves Alexander who '
-            assert test_df.loc[170].text=='has offered Eva the opportunity to buy a rare violin, a Stradivarius, at a fraction of its market '
-            assert test_df.loc[171].text=='value. However, this violin comes without documents of identity or rightful ownership. '
+            assert len(test_df)==6   # Text 3 is a big image, needs ocr
+            assert test_df.iloc[0].text=='This text is adapted from Jon Savage’s book, “Teenage, the Creation of Youth, 1875 – 1945”,  '
+            assert test_df.iloc[1].text=='in which he traces the history of the modern teenager. '
+            assert test_df.iloc[2].text=='This text is taken from Clare Kilroy’s novel, “Tenderwire”, narrated in the voice of Eva  '
+            assert test_df.iloc[3].text=='Tyne, an Irish violinist living and working in New York. The story involves Alexander who '
+            assert test_df.iloc[4].text=='has offered Eva the opportunity to buy a rare violin, a Stradivarius, at a fraction of its market '
+            assert test_df.iloc[5].text=='value. However, this violin comes without documents of identity or rightful ownership. '
         elif year==2009:
-            assert len(test_df)==12
-            assert test_df.loc[28].text=='This text is taken from Head to Head, a series of public debates, published in April 2008 in The '
-            assert test_df.loc[29].text=='Irish Times; it consists of two extracts in response to the question:  '
-            assert test_df.loc[30].text=='Should Zoos be Closed? '
-            assert test_df.loc[31].text=='YES, according to Bernie Wright (Press '
-            assert test_df.loc[32].text=='NO, according to Veronica Chrisp (Head of '
-            assert test_df.loc[33].text=='Officer of the Alliance for Animal Rights) who '
-            assert test_df.loc[175].text=='This text is taken from a short story by Australian writer David Malouf entitled The Valley of '
-            assert test_df.loc[176].text=='Lagoons. In this extract, a bookish young teenager longs to join his mates on a hunting trip to '
-            assert test_df.loc[177].text=='the mysterious Valley of Lagoons. The story is set in Brisbane, Australia. '
-            assert test_df.loc[325].text=='The following text consists of a visual and written element. The visual part is a selection of '
-            assert test_df.loc[326].text=='photographs by Henri Cartier-Bresson. The written element is an extract from an essay entitled '
-            assert test_df.loc[327].text=='“Creating the Decisive Moment” by Frank Van Riper.   '
+            assert len(test_df)==9
+            assert test_df.iloc[0].text=='This text is taken from Head to Head, a series of public debates, published in April 2008 in The '
+            assert test_df.iloc[1].text=='Irish Times; it consists of two extracts in response to the question:  '
+            assert test_df.iloc[2].text=='Should Zoos be Closed? '
+            assert test_df.iloc[3].text=='This text is taken from a short story by Australian writer David Malouf entitled The Valley of '
+            assert test_df.iloc[4].text=='Lagoons. In this extract, a bookish young teenager longs to join his mates on a hunting trip to '
+            assert test_df.iloc[5].text=='the mysterious Valley of Lagoons. The story is set in Brisbane, Australia. '
+            assert test_df.iloc[6].text=='The following text consists of a visual and written element. The visual part is a selection of '
+            assert test_df.iloc[7].text=='photographs by Henri Cartier-Bresson. The written element is an extract from an essay entitled '
+            assert test_df.iloc[8].text=='“Creating the Decisive Moment” by Frank Van Riper.   '
         elif year==2010:
             assert len(test_df)==10
-            assert test_df.loc[28].text=='This text is a short extract adapted from Stepping Stones: Interviews with Seamus Heaney by '
-            assert test_df.loc[29].text=='Dennis O’Driscoll in which Heaney reflects on the impact of his childhood on his future life as '
-            assert test_df.loc[30].text=='a poet.  '
-            assert test_df.loc[158].text=='This text is adapted from Al Gore’s Nobel Prize Acceptance Speech delivered in Norway in '
-            assert test_df.loc[159].text=='2007. '
-            assert test_df.loc[288].text=='Ray Bradbury’s science fiction novel, Fahrenheit 451, describes a '
-            assert test_df.loc[289].text=='future in which books, considered to be the source of all unhappiness, '
-            assert test_df.loc[290].text=='are forbidden.  In this extract adapted from the novel, Guy Montag, a'
-            assert test_df.loc[291].text=='professional book-burner, has an unusual encounter with a young '
-            assert test_df.loc[292].text=='woman, Clarisse McClellan. '
+            assert test_df.iloc[0].text=='This text is a short extract adapted from Stepping Stones: Interviews with Seamus Heaney by '
+            assert test_df.iloc[1].text=='Dennis O’Driscoll in which Heaney reflects on the impact of his childhood on his future life as '
+            assert test_df.iloc[2].text=='a poet.  '
+            assert test_df.iloc[3].text=='This text is adapted from Al Gore’s Nobel Prize Acceptance Speech delivered in Norway in '
+            assert test_df.iloc[4].text=='2007. '
+            assert test_df.iloc[5].text=='Ray Bradbury’s science fiction novel, Fahrenheit 451, describes a '
+            assert test_df.iloc[6].text=='future in which books, considered to be the source of all unhappiness, '
+            assert test_df.iloc[7].text=='are forbidden.  In this extract adapted from the novel, Guy Montag, a'
+            assert test_df.iloc[8].text=='professional book-burner, has an unusual encounter with a young '
+            assert test_df.iloc[9].text=='woman, Clarisse McClellan. '
         elif year==2011:
-            assert len(test_df)==14
-            assert test_df.loc[27].text=='This text is taken from An Irishwoman’s Diary by journalist, Lara Marlowe. She was Irish Times '
-            assert test_df.loc[28].text=='correspondent in Beirut and Paris, and is now based in Washington. Here she responds to an '
-            assert test_df.loc[29].text=='article critical of cats written by her friend and fellow journalist, Rosita Boland. '
-            assert test_df.loc[150].text=='This edited extract is adapted from Colum McCann’s award-winning novel Let The Great World '
-            assert test_df.loc[151].text=='Spin.  The novel’s opening is based on the true story of Philippe Petit’s tight-rope walk between '
-            assert test_df.loc[152].text=='the twin towers of the World Trade Centre in New York on August 8th 1974.  The extract '
-            assert test_df.loc[153].text=='captures the mysterious presence of the tight-rope walker high above the city. '
-            assert test_df.loc[154].text=='C'
-            assert test_df.loc[155].text=='B'
-            assert test_df.loc[268].text=='This text is adapted from a short story,  '
-            assert test_df.loc[269].text=='The Wintersongs, in Kevin Barry’s award-winning  '
-            assert test_df.loc[270].text=='collection, There are Little Kingdoms.  In this extract  '
-            assert test_df.loc[271].text=='an old woman has a mysterious insight into the life  '
-            assert test_df.loc[272].text=='of a young girl, Sarah, whom she meets on a train.  '
+            assert len(test_df)==12
+            assert test_df.iloc[0].text=='This text is taken from An Irishwoman’s Diary by journalist, Lara Marlowe. She was Irish Times '
+            assert test_df.iloc[1].text=='correspondent in Beirut and Paris, and is now based in Washington. Here she responds to an '
+            assert test_df.iloc[2].text=='article critical of cats written by her friend and fellow journalist, Rosita Boland. '
+            assert test_df.iloc[3].text=='This edited extract is adapted from Colum McCann’s award-winning novel Let The Great World '
+            assert test_df.iloc[4].text=='Spin.  The novel’s opening is based on the true story of Philippe Petit’s tight-rope walk between '
+            assert test_df.iloc[5].text=='the twin towers of the World Trade Centre in New York on August 8th 1974.  The extract '
+            assert test_df.iloc[6].text=='captures the mysterious presence of the tight-rope walker high above the city. '
+            assert test_df.iloc[7].text=='This text is adapted from a short story,  '
+            assert test_df.iloc[8].text=='The Wintersongs, in Kevin Barry’s award-winning  '
+            assert test_df.iloc[9].text=='collection, There are Little Kingdoms.  In this extract  '
+            assert test_df.iloc[10].text=='an old woman has a mysterious insight into the life  '
+            assert test_df.iloc[11].text=='of a young girl, Sarah, whom she meets on a train.  '
         elif year==2012:
             assert len(test_df)==13
-            assert test_df.loc[27].text=='This edited extract is adapted from “Where the World Began” by Canadian writer, Margaret '
-            assert test_df.loc[28].text=='Laurence, in which she remembers and reflects on the small prairie town where she grew up.  '
-            assert test_df.loc[29].text=='This text has been adapted from the original, for the purpose of assessment, without the '
-            assert test_df.loc[30].text=='author’s prior consent. '
-            assert test_df.loc[176].text=='This text consists of an edited extract from a speech, delivered by former President Mary '
-            assert test_df.loc[177].text=='Robinson to an international conference on hunger.  In it she considers the commemoration of the '
-            assert test_df.loc[178].text=='Irish famine of 1845 and explores how society’s memory of the past, our collective social memory, '
-            assert test_df.loc[179].text=='shapes our response to contemporary issues.  This text has been adapted from the original, for the '
-            assert test_df.loc[180].text=='purpose of assessment, without the author’s prior consent. '
-            assert test_df.loc[300].text=='This text is adapted from Paul Theroux’s book entitled Ghost Train to the Eastern Star. In this '
-            assert test_df.loc[301].text=='edited extract he describes travelling like a “ghost” through his own memories as he revisits '
-            assert test_df.loc[302].text=='places he had experienced earlier in his life.  This text has been adapted from the original, for the '
-            assert test_df.loc[303].text=='purpose of assessment, without the author’s prior consent. '
+            assert test_df.iloc[0].text=='This edited extract is adapted from “Where the World Began” by Canadian writer, Margaret '
+            assert test_df.iloc[1].text=='Laurence, in which she remembers and reflects on the small prairie town where she grew up.  '
+            assert test_df.iloc[2].text=='This text has been adapted from the original, for the purpose of assessment, without the '
+            assert test_df.iloc[3].text=='author’s prior consent. '
+            assert test_df.iloc[4].text=='This text consists of an edited extract from a speech, delivered by former President Mary '
+            assert test_df.iloc[5].text=='Robinson to an international conference on hunger.  In it she considers the commemoration of the '
+            assert test_df.iloc[6].text=='Irish famine of 1845 and explores how society’s memory of the past, our collective social memory, '
+            assert test_df.iloc[7].text=='shapes our response to contemporary issues.  This text has been adapted from the original, for the '
+            assert test_df.iloc[8].text=='purpose of assessment, without the author’s prior consent. '
+            assert test_df.iloc[9].text=='This text is adapted from Paul Theroux’s book entitled Ghost Train to the Eastern Star. In this '
+            assert test_df.iloc[10].text=='edited extract he describes travelling like a “ghost” through his own memories as he revisits '
+            assert test_df.iloc[11].text=='places he had experienced earlier in his life.  This text has been adapted from the original, for the '
+            assert test_df.iloc[12].text=='purpose of assessment, without the author’s prior consent. '
+        elif year==2013:
+            assert len(test_df)==7 # This should not include the commented lines below.
+            assert test_df.iloc[0].text=='This edited text is based on an article, entitled, Tune in Next Week – The Curious Staying Power of '
+            assert test_df.iloc[1].text=='the Cliff-hanger.  It was written by Emily Nussbaum for The New Yorker magazine.  '
+            assert test_df.iloc[2].text=='This edited text is based on an interview with Irish writer, William Trevor, on The Art of Fiction, '
+            assert test_df.iloc[3].text=='conducted for the Paris Review by Mira Stout.   '
+            #assert test_df.iloc[4].text=='What is your definition of a short story?  '
+            #assert test_df.iloc[5].text=='I think it is the art of the glimpse.  If the novel is '
+            assert test_df.iloc[4].text=='This edited text is based on an article from The Irish Times by Belinda McKeon entitled: “New '
+            assert test_df.iloc[5].text=='York Stories on a Perfect Platform”.  It celebrates the hundredth anniversary of the opening of '
+            assert test_df.iloc[6].text=='New York’s Grand Central Station.  '
         elif year==2013:
             assert len(test_df)==7
             assert test_df.loc[26].text=='This edited text is based on an article, entitled, Tune in Next Week – The Curious Staying Power of '
@@ -551,7 +560,7 @@ def test_identify_text_headers_content():
             assert test_df.loc[290].text=='York Stories on a Perfect Platform”.  It celebrates the hundredth anniversary of the opening of '
             assert test_df.loc[291].text=='New York’s Grand Central Station.  '
         elif year==2014:
-            assert len(test_df)==12
+            assert len(test_df)==11
             assert test_df.loc[27].text=='In the novel, Canada, Richard Ford tells how a bank robbery committed by Bev and Neeva '
             assert test_df.loc[28].text=='Parsons influenced the lives of their children, Dell and his twin sister, Berner, who were fifteen '
             assert test_df.loc[29].text=='years old at the time of the crime.  In this edited extract Dell remembers his escape to Canada '
@@ -560,7 +569,7 @@ def test_identify_text_headers_content():
             assert test_df.loc[170].text=='to talk about an art-form, other than literature, that influenced them. This edited text, adapted '
             assert test_df.loc[171].text=='from The Guardian newspaper, is based on the contributions of two writers, Alan Warner and '
             assert test_df.loc[172].text=='John Lanchester.   '
-            assert test_df.loc[173].text=='1.    Scottish novelist, Alan Warner explores '
+            #assert test_df.loc[173].text=='1.    Scottish novelist, Alan Warner explores '
             assert test_df.loc[313].text=='Seamus Heaney is best remembered as a poet but he also enjoyed a distinguished career as an '
             assert test_df.loc[314].text=='academic.  This edited text is based on an essay by Heaney entitled The Sense of the Past.  It '
             assert test_df.loc[315].text=='appeared in the journal History Ireland.  In it he reflects on the influence of the past on our lives.  '
@@ -585,14 +594,14 @@ def test_identify_text_headers_content():
             assert test_df.loc[280].text=='Aeronautics and Space Administration (NASA), Kennedy Space Centre in Florida.  In this '
             assert test_df.loc[281].text=='extract he acknowledges the history, and outlines the  future, of American space exploration.  '
         elif year==2017:
-            assert len(test_df)==9
+            assert len(test_df)==7
             assert test_df.loc[30].text=='\xa0\xa0IMAGE\xa01\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Montgomery’s\xa0work,\xa0lit\xa0with\xa0recycled\xa0sunlight,\xa0in\xa0Bexhill‐on‐Sea\xa0\xa0'
             assert test_df.loc[31].text=='\xa0Montgomery’s\xa0work\xa0used\xa0in\xa0an\xa0anti‐war\xa0protest\xa0in\xa0Trafalgar\xa0Square,\xa0London\xa0'
-            assert test_df.loc[32].text=='IMAGE\xa02\xa0\xa0'
+            #assert test_df.loc[32].text=='IMAGE\xa02\xa0\xa0'
             assert test_df.loc[105].text=='This\xa0text\xa0is\xa0based\xa0on\xa0edited\xa0extracts\xa0from\xa0Free\xa0Speech\xa0–\xa0Ten\xa0Principles\xa0for\xa0a\xa0Connected\xa0World\xa0by\xa0Oxford\xa0'
             assert test_df.loc[106].text=='Professor,\xa0Timothy\xa0Garton\xa0Ash.\xa0\xa0Professor\xa0Garton\xa0Ash\xa0writes\xa0about\xa0free\xa0speech,\xa0also\xa0termed\xa0“freedom\xa0'
             assert test_df.loc[107].text=='of\xa0expression”,\xa0in\xa0the\xa0digital\xa0global\xa0city\xa0or\xa0“virtual\xa0cosmopolis”\xa0which\xa0we\xa0all\xa0now\xa0inhabit.\xa0'
-            assert test_df.loc[108].text=='Source:\xa0si.wsj.net\xa0'
+            #assert test_df.loc[108].text=='Source:\xa0si.wsj.net\xa0'
             assert test_df.loc[236].text=='This\xa0 edited\xa0 text\xa0 is\xa0 adapted\xa0 from\xa0 a\xa0 memoir\xa0 entitled\xa0 Report\xa0 from\xa0 the\xa0 Interior\xa0 by\xa0 American\xa0 writer\xa0\xa0'
             assert test_df.loc[237].text=='Paul\xa0Auster.\xa0\xa0In\xa0this\xa0extract\xa0he\xa0focuses\xa0on\xa0the\xa0world\xa0of\xa0childhood.\xa0'
         elif year==2018:
@@ -653,7 +662,7 @@ def test_identify_text_headers_content():
             assert test_df.loc[324].text=='we witness the book telling its own story, including its rescue from the Nazi book burning in '
             assert test_df.loc[325].text=='1933. '
         elif year==2023:
-            assert len(test_df)==14
+            assert len(test_df)==12
             assert test_df.loc[32].text=='This text is based on an edited extract from Gravel Heart, a novel by Abdulrazak Gurnah, 2021 '
             assert test_df.loc[33].text=='Nobel Prize winner for literature.  In this extract Salim, from a small island village in Zanzibar, '
             assert test_df.loc[34].text=='comes to stay with his uncle in London to further his education.  He doesn’t know how to belong '
@@ -666,8 +675,8 @@ def test_identify_text_headers_content():
             assert test_df.loc[286].text=='July 2022: an introduction from Patricia Scanlon, Ireland’s first Artificial Intelligence '
             assert test_df.loc[287].text=='Ambassador, published in The Irish Times and a feature by Ben Spencer printed in The Sunday '
             assert test_df.loc[288].text=='Times magazine entitled, “I’m better than the Bard.”   '
-            assert test_df.loc[289].text=='Patricia Scanlon: ' # Shouldn't be there.
-            assert test_df.loc[290].text=='Ben Spencer: '      # Shouldn't be there.
+            #assert test_df.loc[289].text=='Patricia Scanlon: ' # Shouldn't be there.
+            #assert test_df.loc[290].text=='Ben Spencer: '      # Shouldn't be there.
         elif year==2024:
             assert len(test_df)==8
             assert test_df.loc[26].text=='This text is an edited article from The Irish Times, by Fintan O’Toole entitled, ‘We have taken '

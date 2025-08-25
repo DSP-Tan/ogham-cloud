@@ -25,10 +25,10 @@ for year in range(2001,2026):
     identify_instructions(df)
     identify_section_headers(df)
     identify_text_headers(df, doc_width)
-    identify_subtitles(df)
+    identify_subtitles(df, doc_width)
 
-    test_categories = ["dual_col", "caption","instruction", "footer", "section","title"]
-    cat = "title"
+    test_categories = ["dual_col", "caption","instruction", "footer", "section","title","subtitle"]
+    cat = "subtitle"
     
     test_df = df[df[cat] == 1]
     

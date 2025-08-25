@@ -39,7 +39,10 @@ for year in range(2001,2026):
     identify_instructions(df)
     identify_section_headers(df)
     identify_text_headers(df, doc_width)
-    identify_subtitles(df)
+    if year == 2006:
+        import ipdb; ipdb.set_trace()
+    identify_subtitles(df,doc_width)
+
     
     #uncategorised = (df.section==0) & (df.caption ==0) & (df.instruction==0) & (df.title ==0 ) & (df.footer==0)
     #after_headers = df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=6
@@ -68,7 +71,5 @@ for year in range(2001,2026):
     print(result.text)
     print("--"*40)
 
-    #if year==2006:
-    #    import ipdb; ipdb.set_trace()
 
     doc.close()
