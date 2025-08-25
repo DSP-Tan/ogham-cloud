@@ -28,7 +28,7 @@ for year in range(2001,2026):
     identify_subtitles(df)
 
     test_categories = ["dual_col", "caption","instruction", "footer", "section","title"]
-    cat = "subtitle"
+    cat = "title"
     
     test_df = df[df[cat] == 1]
     
@@ -37,7 +37,8 @@ for year in range(2001,2026):
     else:
         print(f"elif year=={year}:")
     print(f"    assert len(test_df)=={len(test_df)}")
-    for i, row in test_df.iterrows():
-        print(f"    assert test_df.loc[{i}].text=={repr(row.text)}")
+    for i, i_row in enumerate(test_df.iterrows() ):
+        idx, row = i_row
+        print(f"    assert test_df.iloc[{i}].text=={repr(row.text)}")
 
     doc.close()

@@ -85,171 +85,170 @@ def test_identify_text_headers():
         identify_text_headers(doc_df, width)
         test_df = doc_df[doc_df.title==1].copy()
         if year==2001:
-            assert len(test_df) == 8
-            assert test_df.loc[33].text=='TEXT 1'
-            assert test_df.loc[34].text=='BEING IRISH'
-            assert test_df.loc[158].text=='TEXT 2'
-            assert test_df.loc[159].text=='A NEW IRELAND'
-            assert test_df.loc[249].text=='TEXT 3'
-            assert test_df.loc[250].text=='AN IRISH SENSE OF HUMOUR'
-            assert test_df.loc[356].text=='TEXT 4'
-            assert test_df.loc[357].text=='IMAGES OF IRELAND'
+            assert len(test_df)==8
+            assert test_df.iloc[0].text=='TEXT 1'
+            assert test_df.iloc[1].text=='BEING IRISH'
+            assert test_df.iloc[2].text=='TEXT 2'
+            assert test_df.iloc[3].text=='A NEW IRELAND'
+            assert test_df.iloc[4].text=='TEXT 3'
+            assert test_df.iloc[5].text=='AN IRISH SENSE OF HUMOUR'
+            assert test_df.iloc[6].text=='TEXT 4'
+            assert test_df.iloc[7].text=='IMAGES OF IRELAND'
         elif year==2002:
             assert len(test_df)==6
-            assert test_df.loc[25].text=='TEXT 1 '
-            assert test_df.loc[26].text=='THE FAMILY OF MAN '
-            assert test_df.loc[105].text=='TEXT 2 '
-            assert test_df.loc[106].text=='FAMILY HOME FOR SALE '
-            assert test_df.loc[191].text=='TEXT 3 '
-            assert test_df.loc[192].text=='FAMILIES IN A TIME OF CRISIS '
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='THE FAMILY OF MAN '
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='FAMILY HOME FOR SALE '
+            assert test_df.iloc[4].text=='TEXT 3 '
+            assert test_df.iloc[5].text=='FAMILIES IN A TIME OF CRISIS '
         elif year==2003:
             assert len(test_df)==6
-            assert test_df.loc[26].text=='TEXT 1'
-            assert test_df.loc[27].text=='THE FIRST GREAT JOURNEY'
-            assert test_df.loc[179].text=='TEXT 2'
-            assert test_df.loc[180].text=='A STRANGE COMPANION'
-            assert test_df.loc[316].text=='TEXT 3'
-            assert test_df.loc[317].text=='DESTINATIONS'
+            assert test_df.iloc[0].text=='TEXT 1'
+            assert test_df.iloc[1].text=='THE FIRST GREAT JOURNEY'
+            assert test_df.iloc[2].text=='TEXT 2'
+            assert test_df.iloc[3].text=='A STRANGE COMPANION'
+            assert test_df.iloc[4].text=='TEXT 3'
+            assert test_df.iloc[5].text=='DESTINATIONS'
         elif year==2004:
             assert len(test_df)==6
-            assert test_df.loc[26].text=='TEXT 1 '
-            assert test_df.loc[27].text=='THE IMPORTANCE OF PLAY '
-            assert test_df.loc[144].text=='TEXT 2 '
-            assert test_df.loc[145].text=='PAUL’S FIRST DAY AT WORK '
-            assert test_df.loc[288].text=='TEXT 3 '
-            assert test_df.loc[289].text=='WORK AND PLAY '
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='THE IMPORTANCE OF PLAY '
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='PAUL’S FIRST DAY AT WORK '
+            assert test_df.iloc[4].text=='TEXT 3 '
+            assert test_df.iloc[5].text=='WORK AND PLAY '
         elif year==2005:
-            assert len(test_df) == 6
-            assert test_df.loc[26].text=='TEXT 1 '
-            assert test_df.loc[27].text=='AN ORDINARY LIFE '
-            assert test_df.loc[171].text=='TEXT 2 '
-            assert test_df.loc[172].text=='ORDINARY LIVES IN WAR TIME '
-            assert test_df.loc[246].text=='TEXT 3 '
-            assert test_df.loc[247].text=='PUBLIC LIVES '
+            assert len(test_df)==6
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='AN ORDINARY LIFE '
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='ORDINARY LIVES IN WAR TIME '
+            assert test_df.iloc[4].text=='TEXT 3 '
+            assert test_df.iloc[5].text=='PUBLIC LIVES '
         elif year==2006:
-            assert len(test_df) == 6
-            assert test_df.loc[26].text=='TEXT I '
-            assert test_df.loc[27].text=='“WHAT SEEMS TO BE THE PROBLEM, LADY SARAH?” '
-            assert test_df.loc[153].text=='TEXT 2 '
-            assert test_df.loc[154].text=='GHOST WRITING    '
-            assert test_df.loc[278].text=='TEXT 3 '
-            assert test_df.loc[279].text=='PRETENCE '
+            assert len(test_df)==6
+            assert test_df.iloc[0].text=='TEXT I '
+            assert test_df.iloc[1].text=='“WHAT SEEMS TO BE THE PROBLEM, LADY SARAH?” '
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='GHOST WRITING    '
+            assert test_df.iloc[4].text=='TEXT 3 '
+            assert test_df.iloc[5].text=='PRETENCE '
         elif year==2007:
-            assert len(test_df) == 6
-            assert test_df.loc[26].text=='TEXT 1 '
-            assert test_df.loc[27].text=='FILMS TO CHANGE YOUR LIFE '
-            assert test_df.loc[155].text=='TEXT 2 '
-            assert test_df.loc[156].text=='LONDON, PAST AND PRESENT '
-            assert test_df.loc[297].text=='TEXT 3 '
-            assert test_df.loc[298].text=='FORCES FOR CHANGE? '
-        elif year==2008:   # Text 3 is all image.
-            assert len(test_df) == 4
-            assert test_df.loc[26].text=='TEXT 1 '
-            assert test_df.loc[27].text=='TEENAGE IDENTITY '
-            assert test_df.loc[166].text=='TEXT 2 '
-            assert test_df.loc[167].text=='FALSE IDENTITY? '
+            assert len(test_df)==6
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='FILMS TO CHANGE YOUR LIFE '
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='LONDON, PAST AND PRESENT '
+            assert test_df.iloc[4].text=='TEXT 3 '
+            assert test_df.iloc[5].text=='FORCES FOR CHANGE? '
+        elif year==2008:
+            assert len(test_df)==4                             # text 3 is all image
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='TEENAGE IDENTITY '
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='FALSE IDENTITY? '
         elif year==2009:
-            assert len(test_df) == 6
-            assert test_df.loc[26].text=='TEXT 1 '
-            assert test_df.loc[27].text=='Decisions for Society'
-            #assert test_df.loc[30].text=='Should Zoos be Closed? '
-            assert test_df.loc[173].text=='TEXT 2 '
-            assert test_df.loc[174].text=='Personal Decisions '
-            assert test_df.loc[323].text=='TEXT 3 '
-            assert test_df.loc[324].text=='The Decisive Moment '
-            assert test_df.loc[329].text=='Creating the Decisive Moment '   # This appears at the top of the second page of Text3, we can still call it a title.
+            assert len(test_df)==7
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='Decisions for Society'
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='Personal Decisions '
+            assert test_df.iloc[4].text=='TEXT 3 '
+            assert test_df.iloc[5].text=='The Decisive Moment '
+            assert test_df.iloc[6].text=='Creating the Decisive Moment '  # This appears at the top of the second page of Text3, we can still call it a title. 
         elif year==2010:
-            assert len(test_df) == 6
-            assert test_df.loc[26].text=='TEXT 1 '
-            assert test_df.loc[27].text=='A Personal Future '
-            assert test_df.loc[156].text=='TEXT 2 '
-            assert test_df.loc[157].text=='A Global Future'
-            assert test_df.loc[286].text=='TEXT 3 '
-            assert test_df.loc[287].text=='An Imagined Future '
+            assert len(test_df)==6
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='A Personal Future '
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='A Global Future'
+            assert test_df.iloc[4].text=='TEXT 3 '
+            assert test_df.iloc[5].text=='An Imagined Future '
         elif year==2011:
-            assert len(test_df) == 3
-            assert test_df.loc[26].text=='TEXT 1'
-            assert test_df.loc[149].text=='TEXT 2 '
-            assert test_df.loc[267].text=='TEXT 3 '
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT 1'
+            assert test_df.iloc[1].text=='TEXT 2 '
+            assert test_df.iloc[2].text=='TEXT 3 '
         elif year==2012:
-            assert len(test_df) == 6
-            assert test_df.loc[25].text=='TEXT 1 '
-            assert test_df.loc[26].text=='Personal Memories  '
-            assert test_df.loc[174].text=='TEXT 2 '
-            assert test_df.loc[175].text=='Shared Memories  '
-            assert test_df.loc[298].text=='TEXT 3 '
-            assert test_df.loc[299].text=='A journey remembered and revisited  '
+            assert len(test_df)==6
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='Personal Memories  '
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='Shared Memories  '
+            assert test_df.iloc[4].text=='TEXT 3 '
+            assert test_df.iloc[5].text=='A journey remembered and revisited  '
         elif year==2013:
-            assert len(test_df) == 4
-            assert test_df.loc[25].text=='TEXT 1 '
-            assert test_df.loc[161].text=='TEXT 2  '
-            assert test_df.loc[288].text=='TEXT 3 '
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='TEXT 2  '
+            assert test_df.iloc[2].text=='TEXT 3 '
         elif year==2014:
-            assert len(test_df) == 6
-            assert test_df.loc[25].text=='TEXT 1'
-            assert test_df.loc[26].text=='AN INFLUENTIAL EVENT '
-            assert test_df.loc[167].text=='TEXT 2'
-            assert test_df.loc[168].text=='CULTURAL INFLUENCES '
-            assert test_df.loc[311].text=='TEXT 3'
-            assert test_df.loc[312].text=='THE INFLUENCE OF THE PAST '
+            assert len(test_df)==6
+            assert test_df.iloc[0].text=='TEXT 1'
+            assert test_df.iloc[1].text=='AN INFLUENTIAL EVENT '
+            assert test_df.iloc[2].text=='TEXT 2'
+            assert test_df.iloc[3].text=='CULTURAL INFLUENCES '
+            assert test_df.iloc[4].text=='TEXT 3'
+            assert test_df.iloc[5].text=='THE INFLUENCE OF THE PAST '
         elif year==2015:
-            assert len(test_df) == 6
-            assert test_df.loc[25].text=='TEXT 1 '
-            assert test_df.loc[26].text=='BECAUSE WE CAN, WE MUST '
-            assert test_df.loc[176].text=='TEXT 2 '
-            assert test_df.loc[177].text=='GHOSTS DON’T SHOW UP ON CCTV '
-            assert test_df.loc[317].text=='TEXT 3 '
-            assert test_df.loc[318].text=='A LIFE IN TIME '
+            assert len(test_df)==6
+            assert test_df.iloc[0].text=='TEXT 1 '
+            assert test_df.iloc[1].text=='BECAUSE WE CAN, WE MUST '
+            assert test_df.iloc[2].text=='TEXT 2 '
+            assert test_df.iloc[3].text=='GHOSTS DON’T SHOW UP ON CCTV '
+            assert test_df.iloc[4].text=='TEXT 3 '
+            assert test_df.iloc[5].text=='A LIFE IN TIME '
         elif year==2016:
-            assert len(test_df) == 3
-            assert test_df.loc[25].text=='TEXT 1 – A DRAMATIC JOURNEY '
-            assert test_df.loc[115].text=='TEXT 2 – A PERSONAL JOURNEY '
-            assert test_df.loc[278].text=='TEXT 3 – JOURNEY INTO SPACE '
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT 1 – A DRAMATIC JOURNEY '
+            assert test_df.iloc[1].text=='TEXT 2 – A PERSONAL JOURNEY '
+            assert test_df.iloc[2].text=='TEXT 3 – JOURNEY INTO SPACE '
         elif year==2017:
-            assert len(test_df) == 3
-            assert test_df.loc[26].text=='TEXT\xa01\xa0–\xa0THE\xa0WORLD\xa0OF\xa0POETRY\xa0'
-            assert test_df.loc[104].text=='TEXT\xa02\xa0–\xa0A\xa0CONNECTED\xa0WORLD\xa0\xa0'
-            assert test_df.loc[235].text=='TEXT\xa03\xa0–\xa0THE\xa0WORLD\xa0OF\xa0CHILDHOOD\xa0'
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT\xa01\xa0–\xa0THE\xa0WORLD\xa0OF\xa0POETRY\xa0'
+            assert test_df.iloc[1].text=='TEXT\xa02\xa0–\xa0A\xa0CONNECTED\xa0WORLD\xa0\xa0'
+            assert test_df.iloc[2].text=='TEXT\xa03\xa0–\xa0THE\xa0WORLD\xa0OF\xa0CHILDHOOD\xa0'
         elif year==2018:
-            assert len(test_df) == 3
-            assert test_df.loc[25].text=='TEXT\xa01\xa0–\xa0ADVICE\xa0TO\xa0YOUNG\xa0WRITERS\xa0'
-            assert test_df.loc[165].text=='TEXT\xa02\xa0–\xa0A\xa0SUCCESSFUL\xa0YOUNG\xa0WRITER\xa0\xa0'
-            assert test_df.loc[306].text=='TEXT\xa03\xa0–\xa0A\xa0TRAGIC\xa0YOUNG\xa0POET\xa0'
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT\xa01\xa0–\xa0ADVICE\xa0TO\xa0YOUNG\xa0WRITERS\xa0'
+            assert test_df.iloc[1].text=='TEXT\xa02\xa0–\xa0A\xa0SUCCESSFUL\xa0YOUNG\xa0WRITER\xa0\xa0'
+            assert test_df.iloc[2].text=='TEXT\xa03\xa0–\xa0A\xa0TRAGIC\xa0YOUNG\xa0POET\xa0'
         elif year==2019:
-            assert len(test_df) == 3
-            assert test_df.loc[26].text=='TEXT\xa01\xa0–\xa0WHAT\xa0IS\xa0ART\xa0FOR?\xa0'
-            assert test_df.loc[162].text=='TEXT\xa02\xa0–\xa0A\xa0PHOTOGRAPHER’S\xa0PERSPECTIVE\xa0'
-            assert test_df.loc[276].text=='TEXT\xa03\xa0–\xa0LIBRARIES:\xa0CATHEDRALS\xa0OF\xa0OUR\xa0SOULS\xa0'
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT\xa01\xa0–\xa0WHAT\xa0IS\xa0ART\xa0FOR?\xa0'
+            assert test_df.iloc[1].text=='TEXT\xa02\xa0–\xa0A\xa0PHOTOGRAPHER’S\xa0PERSPECTIVE\xa0'
+            assert test_df.iloc[2].text=='TEXT\xa03\xa0–\xa0LIBRARIES:\xa0CATHEDRALS\xa0OF\xa0OUR\xa0SOULS\xa0'
         elif year==2020:
-            assert len(test_df) == 3
-            assert test_df.loc[25].text=='TEXT 1 – FROM GENRE to GENRE '
-            assert test_df.loc[137].text=='TEXT 2 – DETECTIVE FICTION '
-            assert test_df.loc[266].text=='TEXT 3 – SCIENCE FICTION (SCI-FI) '
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT 1 – FROM GENRE to GENRE '
+            assert test_df.iloc[1].text=='TEXT 2 – DETECTIVE FICTION '
+            assert test_df.iloc[2].text=='TEXT 3 – SCIENCE FICTION (SCI-FI) '
         elif year==2021:
-            assert len(test_df) == 3
-            assert test_df.loc[25].text=='TEXT 1 – TIME PIECES   '
-            assert test_df.loc[158].text=='TEXT 2 – DAYDREAMING BACK IN TIME '
-            assert test_df.loc[289].text=='TEXT 3 – THIS IS YOUR TIME '
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT 1 – TIME PIECES   '
+            assert test_df.iloc[1].text=='TEXT 2 – DAYDREAMING BACK IN TIME '
+            assert test_df.iloc[2].text=='TEXT 3 – THIS IS YOUR TIME '
         elif year==2022:
-            assert len(test_df) == 3
-            assert test_df.loc[36].text=='TEXT 1 – A YOUNG POET’S POWERFUL VOICE '
-            assert test_df.loc[185].text=='TEXT 2 – THE POWERFUL VOICE OF MUSIC  '
-            assert test_df.loc[321].text=='TEXT 3 – THE POWERFUL VOICE OF BOOKS '
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT 1 – A YOUNG POET’S POWERFUL VOICE '
+            assert test_df.iloc[1].text=='TEXT 2 – THE POWERFUL VOICE OF MUSIC  '
+            assert test_df.iloc[2].text=='TEXT 3 – THE POWERFUL VOICE OF BOOKS '
         elif year==2023:
-            assert len(test_df) == 3
-            assert test_df.loc[31].text=='TEXT 1 – BETWEEN TWO WORLDS: VILLAGE AND CITY '
-            assert test_df.loc[167].text=='TEXT 2 – BETWEEN TWO WORLDS: THROUGH WORDS AND PICTURES '
-            assert test_df.loc[284].text=='TEXT 3 – BETWEEN TWO WORLDS: HUMAN AND TECHNOLOGICAL '
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT 1 – BETWEEN TWO WORLDS: VILLAGE AND CITY '
+            assert test_df.iloc[1].text=='TEXT 2 – BETWEEN TWO WORLDS: THROUGH WORDS AND PICTURES '
+            assert test_df.iloc[2].text=='TEXT 3 – BETWEEN TWO WORLDS: HUMAN AND TECHNOLOGICAL '
         elif year==2024:
-            assert len(test_df) == 3
-            assert test_df.loc[25].text=='TEXT 1 – FAMILY CONNECTIONS AND THE NATURAL WORLD '
-            assert test_df.loc[160].text=='TEXT 2 – FRIENDSHIP, THE HUMAN CONNECTION '
-            assert test_df.loc[313].text=='TEXT 3 – CONNECTING THROUGH TRAVEL '
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT 1 – FAMILY CONNECTIONS AND THE NATURAL WORLD '
+            assert test_df.iloc[1].text=='TEXT 2 – FRIENDSHIP, THE HUMAN CONNECTION '
+            assert test_df.iloc[2].text=='TEXT 3 – CONNECTING THROUGH TRAVEL '
         elif year==2025:
-            assert len(test_df) == 3
-            assert test_df.loc[30].text=='TEXT 1 – The Underdog Effect – Changing Perspectives '
-            assert test_df.loc[180].text=='TEXT 2 – The Perspective of a ‘Wise Old Counsellor’ '
-            assert test_df.loc[332].text=='TEXT 3 – Planet Earth from the Perspective of Space '
+            assert len(test_df)==3
+            assert test_df.iloc[0].text=='TEXT 1 – The Underdog Effect – Changing Perspectives '
+            assert test_df.iloc[1].text=='TEXT 2 – The Perspective of a ‘Wise Old Counsellor’ '
+            assert test_df.iloc[2].text=='TEXT 3 – Planet Earth from the Perspective of Space '
 
 
 def test_identify_section_headers_content():
