@@ -258,10 +258,6 @@ def identify_subtitles(doc_df,doc_width):
         raise runtimeerror("assign section headings first")
     if doc_df.title.sum() == 0:
         raise runtimeerror("assign text headers first")
-    
-
-    median_size   = doc_df.font_size.median()
-    standard_font = doc_df.mode_font.mode()[0]
 
     doc_df["round_y0"] = doc_df.y0.map(round)
     doc_df["counts"]   = doc_df.groupby(["page","round_y0"])["x0"].transform('count')
@@ -270,23 +266,53 @@ def identify_subtitles(doc_df,doc_width):
     bold_font     = doc_df.mode_font.str.contains("Bold")
     starts_left   = doc_df.x0 < doc_width/2
     pages         = (doc_df.page > 1) & (doc_df.page <9)
-    #pages         = (doc_df.page == 2) | (doc_df.page ==4) | (doc_df.page ==6) | (doc_df.page ==8)
     title_on_page = doc_df.groupby('page')['title'].transform('sum') >0
     uncategorised = (doc_df.section==0) & (doc_df.caption ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0)
     after_headers = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=6
 
     mask = pages & uncategorised & after_headers & title_on_page 
-    
     mask2 = ( bold_font.astype(int) + starts_left.astype(int) + single_line.astype(int) ) >=2
-
     doc_df.loc[mask & mask2 , "subtitle"] = 1 
     
     doc_df = remove_non_contiguous_lines(doc_df, "subtitle")
-    
 
+    return doc_df
+
+
+def identify_subsubtitles(doc_df):
+    if doc_df.section.sum() == 0:
+        raise runtimeerror("assign section headings first")
+    if doc_df.title.sum() == 0:
+        raise runtimeerror("assign text titles first")
+    if doc_df.subtitle.sum() == 0:
+        raise runtimeerror("assign text subtitles first")
+
+    single_line      = (doc_df.counts == 1)
+    title_on_page    = doc_df.groupby('page')['title'].transform('sum') >0
+    subtitle_on_page = doc_df.groupby('page')['subtitle'].transform('sum') >0
+    pages            = (doc_df.page > 1) & (doc_df.page <9)
+    uncategorised    = (doc_df.section==0) & (doc_df.caption ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0) & (doc_df.subtitle ==0 )
+    after_subtitles  = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=10
+    italic_or_bold   = (doc_df.mode_font.str.contains("Bold") | doc_df.mode_font.str.contains("Italic") )
+    
+    mask = single_line & title_on_page & subtitle_on_page & pages & uncategorised & after_subtitles & italic_or_bold
+    doc_df.loc[mask, "subsubtitle"] = 1
+
+    # doc_df = remove_non_contiguous_lines(doc_df, "subsubtitle")
 
     return doc_df
 
     
-
+def get_line_overlaps(df):
+    counts = np.zeros(len(df), dtype=int)
     
+    for page, g in df.groupby("page"):
+        y = g["y0"].values
+        h_vals = g["h"].values*0.1
+        row_counts = []
+        for i, (yi, hi) in enumerate(zip(y, h_vals)):
+            row_counts.append(np.sum(np.abs(y - yi) <= hi))
+        counts[g.index] = row_counts
+    
+    df["counts"] = counts
+    return df

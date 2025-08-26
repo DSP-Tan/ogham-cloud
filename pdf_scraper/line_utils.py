@@ -128,6 +128,7 @@ def get_line_df(lines):
     section        = [0]*len(lines)
     title          = [0]*len(lines)
     subtitle       = [0]*len(lines)
+    subsubtitle    = [0]*len(lines)
 
 
     data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,
@@ -135,7 +136,7 @@ def get_line_df(lines):
     "text":text, "font_sizes":font_size_list, "mode_font_size":mode_font_size,
     "font_size":font_size, "dual_col":dual_col, "caption":caption,
     "instruction":instruction, "footer":footer, "section":section,
-    "title":title, "subtitle":subtitle}
+    "title":title, "subtitle":subtitle, "subsubtitle":subsubtitle}
     return pd.DataFrame(data_dict)
 
 def clean_line_df(df):
