@@ -139,6 +139,21 @@ def get_line_df(lines):
     "title":title, "subtitle":subtitle, "subsubtitle":subsubtitle}
     return pd.DataFrame(data_dict)
 
+def get_level_line_counts(df, overlap_factor):
+    temp_df = df[['y0', 'h', 'page']].copy()
+    temp_df["index_col"] = temp_df.index
+
+    new_df = temp_df.merge(temp_df, on="page", suffixes=("", "_other"))
+    new_df = new_df[new_df.index_col != new_df.index_col_other]
+
+    new_df["y_diff"] = abs(new_df["y0"] - new_df["y0_other"])
+    new_df = new_df[new_df["y_diff"] <= new_df["h"] * overlap_factor]
+
+    counts_per_index = new_df.groupby("index_col").size()
+    counts_series = df.index.map(counts_per_index).fillna(0).astype(int)
+
+    return counts_series
+
 def clean_line_df(df):
     buff_mask = is_buffered_line(df, 6)
     df.loc[buff_mask, ["x0", "x1", "text"]] = df.loc[buff_mask].apply(re_box_line, axis=1)

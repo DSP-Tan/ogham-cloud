@@ -1,6 +1,6 @@
 from pdf_scraper.doc_utils import open_exam, get_images, get_doc_line_df, filter_images
 from pdf_scraper.doc_utils import get_captions, identify_footers, identify_section_headers, identify_text_headers
-from pdf_scraper.doc_utils import identify_instructions, identify_subtitles
+from pdf_scraper.doc_utils import identify_instructions, identify_subtitles, identify_subsubtitles
 from pdf_scraper.line_utils import clean_line_df
 from fitz import Document
 
@@ -683,6 +683,40 @@ def test_identify_text_subtitles():
             assert test_df.iloc[9].text=='to collect meteorological data and conduct scientific experiments.  But mostly they observe.   '
             assert test_df.iloc[10].text=='the story of six astronauts who rotate in a spacecraft above the earth. They are there to collect '
             assert test_df.iloc[11].text=='meteorological data and conduct scientific experiments. But mostly they observe. '
+
+def test_identify_text_subsubtitles():
+    for year in range(2001,2026):
+        doc = open_exam(year, "english", "al",1)
+        df = get_doc_line_df(doc)
+        doc_width     = doc[0].rect.width
+    
+        df = clean_line_df(df)
+        identify_footers(df)
+        identify_instructions(df)
+        identify_section_headers(df)
+        identify_text_headers(df, doc_width)
+        identify_subtitles(df,doc_width)
+        identify_subsubtitles(df)
+        test_df = df[df.subsubtitle==1].copy()
+        if year==2003:
+            assert len(test_df)==7
+            assert test_df.iloc[0].text=='It was King Pelias who sent them out.  He had heard an oracle which warned him of a dreadful tale –'
+            assert test_df.iloc[1].text=='death through the machinations of the man whom he should see coming from the town with one foot'
+            assert test_df.iloc[2].text=='bare… The prophecy was soon confirmed.  Jason, fording the Anaurus in a winter spate, lost one of his'
+            assert test_df.iloc[3].text=='sandals, which stuck in the bed of the flooding river, but saved the other from the mud and shortly'
+            assert test_df.iloc[4].text=='appeared before the king.  And no sooner did the king see him than he thought of the oracle and'
+            assert test_df.iloc[5].text=='decided to send him on a perilous adventure overseas.  He hoped that things might so fall out, either at'
+            assert test_df.iloc[6].text=='sea or in outlandish parts, that Jason would never see his home again.'
+        elif year==2005:
+            assert len(test_df)==2
+            assert test_df.iloc[0].text=='World exclusive ! Irish Rock Diva speaks to readers from '
+            assert test_df.iloc[1].text=='her Italian villa. '
+        elif year==2006:
+            assert len(test_df)==1
+            assert test_df.iloc[0].text=='On Ghost Writing '
+        else:
+            assert len(test_df) == 0
+        
 
 if __name__=="__main__":
     test_open_doc()

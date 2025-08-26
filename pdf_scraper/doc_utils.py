@@ -6,7 +6,7 @@ from PIL import Image
 import re
 from sklearn.cluster import DBSCAN
 from pdf_scraper.block_utils import clean_blocks
-from pdf_scraper.line_utils  import get_line_df, get_line_text
+from pdf_scraper.line_utils  import get_line_df, get_line_text, get_level_line_counts
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
 from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips
 from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions
@@ -259,10 +259,9 @@ def identify_subtitles(doc_df,doc_width):
     if doc_df.title.sum() == 0:
         raise runtimeerror("assign text headers first")
 
-    doc_df["round_y0"] = doc_df.y0.map(round)
-    doc_df["counts"]   = doc_df.groupby(["page","round_y0"])["x0"].transform('count')
+    doc_df["counts"]   = get_level_line_counts(doc_df, 0.9)
 
-    single_line   = (doc_df.counts == 1)
+    single_line   = (doc_df.counts == 0)
     bold_font     = doc_df.mode_font.str.contains("Bold")
     starts_left   = doc_df.x0 < doc_width/2
     pages         = (doc_df.page > 1) & (doc_df.page <9)
@@ -287,7 +286,7 @@ def identify_subsubtitles(doc_df):
     if doc_df.subtitle.sum() == 0:
         raise runtimeerror("assign text subtitles first")
 
-    single_line      = (doc_df.counts == 1)
+    single_line      = (doc_df.counts == 0)
     title_on_page    = doc_df.groupby('page')['title'].transform('sum') >0
     subtitle_on_page = doc_df.groupby('page')['subtitle'].transform('sum') >0
     pages            = (doc_df.page > 1) & (doc_df.page <9)
