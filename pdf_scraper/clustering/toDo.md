@@ -53,3 +53,11 @@ y0_below = min(y0_1,y0_2)
 dy = y1_above - y0_below
 
 
+## premade solution
+Actually, this can be achieved by just doing two consecutive dbscans with just the one variable. Here you will get clusters
+of lines contiguous in y0, and clusters of lines contiguous in x0.
+
+Of course this will not implement the "line distance" concept,  but just using x0 and y0 should be sufficient to get vertical
+and horizontally grouped lines, and to separate columns too.
+
+
