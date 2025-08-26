@@ -229,6 +229,7 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
     """
     line_scale = 1.25
     pages = np.unique(df[df[cat]==1].page)
+
     dLs=[]
     for page in pages:
         temp_df = df[(df.page==page) & df[cat]==1].copy()
@@ -236,21 +237,19 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
         y1s = temp_df.loc[ temp_df.index[1:-1] ].y0
         dLs.append(np.array(y1s) - np.array(y0s) )
     dL = np.median(np.concat(dLs,axis=0) )
-    #dL = df[df[cat]==1].dL.median()
+
     for i in pages:
         page_df = df[(df.page ==i) & (df[cat]==1) ].copy()
-        #dL = page_df.dL.median()
         scan = DBSCAN(eps=dL*line_scale, min_samples=3).fit(page_df[["y0"]])
-        # If there are only 2 lines in the subtitle the above dbscan will not be able to
-        # find any clusters.
+        # If there are only 2 lines in the subtitle the above dbscan will not be able to find any clusters.
         if len(np.unique(scan.labels_)) == 1:
             scan = DBSCAN(eps=dL*line_scale, min_samples=2).fit(page_df[["y0"]])
         if len(np.unique(scan.labels_)) == 1:
             continue
-        else:
-            not_contig_group = (scan.labels_ != scan.labels_[0])
-            page_df.loc[not_contig_group, cat] = 0
-            df.loc[page_df.index, cat] = page_df[cat]
+        not_contig_group = (scan.labels_ != scan.labels_[0])
+        page_df.loc[not_contig_group, cat] = 0
+        df.loc[page_df.index, cat] = page_df[cat]
+
     return df
 
 
