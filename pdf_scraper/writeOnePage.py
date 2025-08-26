@@ -1,4 +1,5 @@
 import fitz  
+from pdf_scraper.doc_utils import open_exam
 
 def extract_7th_page(input_pdf, output_pdf):
     doc = fitz.open(input_pdf)
@@ -13,7 +14,15 @@ def extract_7th_page(input_pdf, output_pdf):
     doc.close()
     print(f"Extracted 7th page saved as {output_pdf}")
 
-# Example usage
-input_pdf = "LC002ALP100EV_2024.pdf"
-output_pdf = "page7.pdf"
-extract_7th_page(input_pdf, output_pdf)
+
+
+for year in range(2001,2026):
+    new_doc = fitz.open()
+    output_pdf = f"{year}_title_subtitle_check.pdf"
+    doc = open_exam(year, "english", "al",1)
+    pages = [2,4,6] if year != 2001 else [2,4,6,8]
+    for i in pages:
+        new_doc.insert_pdf(doc, from_page=i-1, to_page=i-1)  
+    doc.close()
+    new_doc.save(output_pdf)
+    new_doc.close()
