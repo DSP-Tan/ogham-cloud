@@ -12,12 +12,11 @@ from pdf_scraper.doc_utils   import get_images,filter_images, assign_in_image_ca
 from pdf_scraper.draw_utils  import get_pink_boundary, get_fill_df, in_the_pink
 from pdf_scraper.line_utils  import get_line_df, print_line_table, get_all_lines, line_is_empty, clean_line_df
 
-# choose category
 test_categories = ["dual_col", "caption","instruction", "footer", "section","title","subtitle","subsubtitle"]
 cat = "subtitle"
 
-OUT_DIR = Path(f"tests/expected_{cat}s")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+out_dir = Path(__file__).parent.resolve() / Path(f"resources/expected_{cat}s")
+out_dir.mkdir(parents=True, exist_ok=True)
 
 for year in range(2001,2026):
 
@@ -42,7 +41,7 @@ for year in range(2001,2026):
     
     test_df = df[df[cat] == 1]
 
-    out_file = OUT_DIR / f"{year}.txt"
+    out_file = out_dir / f"{year}.txt"
     with out_file.open("w", encoding="utf-8") as f:
         for text in test_df.text.tolist():
             f.write(text + "\n")  # preserve \xa0 and all Unicode chars
