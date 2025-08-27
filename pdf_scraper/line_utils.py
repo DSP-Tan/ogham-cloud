@@ -140,11 +140,17 @@ def get_line_df(lines):
     return pd.DataFrame(data_dict)
 
 def get_level_line_counts(df, overlap_factor):
+    """
+    This will count the number of lines which have a y0 which is within
+    overlap_factor of a given line. 
+    
+    It can be used to detect dual column text etc.
+    """
     temp_df = df[['y0', 'h', 'page']].copy()
     temp_df["index_col"] = temp_df.index
 
     new_df = temp_df.merge(temp_df, on="page", suffixes=("", "_other"))
-    new_df = new_df[new_df.index_col != new_df.index_col_other]
+    new_df = new_df[new_df.index_col != new_df.index_col_other].copy()
 
     new_df["y_diff"] = abs(new_df["y0"] - new_df["y0_other"])
     new_df = new_df[new_df["y_diff"] <= new_df["h"] * overlap_factor]
@@ -177,6 +183,13 @@ def get_clean_bins(x:pd.Series,bin_width:float):
 
 def get_bbox(lines):
     line_df = get_line_df(lines)
+    x0 = line_df.x0.min()
+    y0 = line_df.y0.min()
+    x1 = line_df.x1.max()
+    y1 = line_df.y1.max()
+    return tuple( float(i) for i in [x0,y0,x1,y1] )
+
+def get_df_bbox(line_df):
     x0 = line_df.x0.min()
     y0 = line_df.y0.min()
     x1 = line_df.x1.max()
