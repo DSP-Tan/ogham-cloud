@@ -6,7 +6,7 @@ from PIL import Image
 import re
 from sklearn.cluster import DBSCAN
 from pdf_scraper.block_utils import clean_blocks
-from pdf_scraper.line_utils  import get_line_df, get_line_text, get_level_line_counts
+from pdf_scraper.line_utils  import get_line_df, get_line_text, get_level_line_counts, get_df_bbox
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
 from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips
 from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions
@@ -38,7 +38,7 @@ def extract_and_print_page(input_pdf:str, output_pdf:str, n_page:int):
     doc = fitz.open(input_pdf)
 
     new_doc = fitz.open()
-    new_doc.insert_pdf(doc, from_page=n_page-1, to_page=n_page-1)  # 7th page (0-based index)
+    new_doc.insert_pdf(doc, from_page=n_page-1, to_page=n_page-1)  
     new_doc.save(output_pdf)
     new_doc.close()
     doc.close()
@@ -103,21 +103,23 @@ def assign_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[d
     Add captions to images based on overlapping boxes. For english paper one, we
     will not caption anything on the first page, or after the 8th
     """
-    caption_line_indices=pd.Index([])
+    all_indices = []
     count=0
     for image in images:
         if image["page"] == 1 or image["page"] >8:
             image["caption"]=""
             continue
         indices=get_in_image_lines(image,doc_df)
-        doc_df.loc[indices]["caption"]=1
+        doc_df.loc[indices, "caption"]=1
         if len(indices)>0:
-            caption_line_indices.append(indices)
+            all_indices.append(indices)
             captions = get_in_image_captions(image,doc_df, indices)
             image["caption"] = captions
             count+=1
         else:
             image["caption"] = ""
+    
+    caption_line_indices = pd.Index(np.concatenate(all_indices)) if all_indices else pd.Index([])
 
     return caption_line_indices, count
 
@@ -227,19 +229,23 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
     
     This function assumes that a dataframe with rows ordered by y0 is input.
     """
+    if len(df[df[cat]==1]) <2:
+        return df
+
     line_scale = 1.25
     pages = np.unique(df[df[cat]==1].page)
 
     dLs=[]
     for page in pages:
         temp_df = df[(df.page==page) & df[cat]==1].copy()
-        y0s = temp_df.loc[ temp_df.index[0:-2] ].y0
-        y1s = temp_df.loc[ temp_df.index[1:-1] ].y0
-        dLs.append(np.array(y1s) - np.array(y0s) )
+        diffs = temp_df.y0.diff().dropna()
+        dLs.append(diffs)
     dL = np.median(np.concat(dLs,axis=0) )
 
     for i in pages:
         page_df = df[(df.page ==i) & (df[cat]==1) ].copy()
+        if len(page_df) <2:
+            continue
         scan = DBSCAN(eps=dL*line_scale, min_samples=3).fit(page_df[["y0"]])
         # If there are only 2 lines in the subtitle the above dbscan will not be able to find any clusters.
         if len(np.unique(scan.labels_)) == 1:
@@ -278,13 +284,15 @@ def identify_subtitles(doc_df,doc_width):
     return doc_df
 
 
-def identify_subsubtitles(doc_df):
+def identify_subsubtitles(doc_df,doc_width):
     if doc_df.section.sum() == 0:
         raise runtimeerror("assign section headings first")
     if doc_df.title.sum() == 0:
         raise runtimeerror("assign text titles first")
     if doc_df.subtitle.sum() == 0:
         raise runtimeerror("assign text subtitles first")
+
+    middle        = doc_width/2
 
     single_line      = (doc_df.counts == 0)
     title_on_page    = doc_df.groupby('page')['title'].transform('sum') >0
@@ -296,11 +304,23 @@ def identify_subsubtitles(doc_df):
     
     mask = single_line & title_on_page & subtitle_on_page & pages & uncategorised & after_subtitles & italic_or_bold
     doc_df.loc[mask, "subsubtitle"] = 1
+    doc_df = remove_non_contiguous_lines(doc_df, "subsubtitle")
 
-    # doc_df = remove_non_contiguous_lines(doc_df, "subsubtitle")
+    subsub_df =doc_df[doc_df.subsubtitle==1].copy()
+    for page in np.unique(subsub_df.page):
+        page_df = subsub_df[subsub_df.page==page]
+        x0, y0, x1, y1 = get_df_bbox(page_df)
+
+        uncentred = not (x0 <= middle and x1 >= middle)
+        
+        if uncentred: 
+            doc_df.loc[page_df.index, "subsubtitle"] = 0
+
+
 
     return doc_df
 
+    
     
 def get_line_overlaps(df):
     counts = np.zeros(len(df), dtype=int)
