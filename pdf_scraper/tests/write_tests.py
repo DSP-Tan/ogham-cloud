@@ -19,7 +19,8 @@ subject="english"
 
 
 test_categories = ["dual_col", "caption","instruction", "footer", "section","title","subtitle","subsubtitle"]
-cat = "section"
+cat = "caption"
+write = False
 
 out_dir = Path(__file__).parent.resolve() / Path(f"resources/expected_{cat}s")
 out_dir.mkdir(parents=True, exist_ok=True)
@@ -47,10 +48,11 @@ for year in range(2001,2026):
     
     test_df = df[df[cat] == 1]
 
-    out_file = out_dir / f"{subject}_{level}_{paper}_{year}.txt"
-    with out_file.open("w", encoding="utf-8") as f:
-        for text in test_df.text.tolist():
-            f.write(text + "\n")  # preserve \xa0 and all Unicode chars
+    if write:
+        out_file = out_dir / f"{subject}_{level}_{paper}_{year}.txt"
+        with out_file.open("w", encoding="utf-8") as f:
+            for text in test_df.text.tolist():
+                f.write(text + "\n")  # preserve \xa0 and all Unicode chars
     
     if year==2001:
         print(f"if year=={year}:")
