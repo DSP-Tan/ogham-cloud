@@ -390,14 +390,18 @@ def test_identify_section_headers():
             assert test_df.loc[481].text=='SECTION II                          COMPOSING                        (100 marks) '
 
 
-def load_expected(year: int, cat: str) -> list[str]:
+def load_expected(year: int, cat: str, subject: str, level: str, paper: int) -> list[str]:
     out_dir = Path(__file__).parent.resolve() / Path(f"resources/expected_{cat}s")
-    path = out_dir/ f"{year}.txt"
+    path = out_dir/ f"{subject}_{level}_{paper}_{year}.txt"
     return path.read_text(encoding="utf-8").splitlines()
 
 @pytest.mark.parametrize("year", range(2001, 2026))
 def test_identify_text_subtitles(year):
-    doc = open_exam(year, "english", "al", 1)
+    subject = "english"
+    level   = "al"
+    paper   = 1
+
+    doc = open_exam(year, subject, level, paper)
     df = get_doc_line_df(doc)
     doc_width = doc[0].rect.width
 
@@ -409,7 +413,7 @@ def test_identify_text_subtitles(year):
     identify_subtitles(df, doc_width)
 
     got = df[df.subtitle == 1].text.tolist()
-    expected = load_expected(year, "subtitle")
+    expected = load_expected(year, "subtitle",subject, level, paper)
 
     assert got == expected
 
@@ -431,43 +435,15 @@ def test_identify_text_subtitles_old():
         test_df = df[df.subtitle==1].copy()
         if year==2003:
             assert len(test_df)==7  # Text three has no subtitles
-            assert test_df.iloc[0].text=='The following is an extract from The Jason Voyage in which the author, Tim Severin, sets out to test'
-            assert test_df.iloc[1].text=='whether the legendary journey of Jason’s search for the Golden Fleece could have happened in fact.'
-            assert test_df.iloc[2].text=='The book was published in 1985.'
-            assert test_df.iloc[3].text=='This extract is adapted from The Golden Horde, Travels from the Himalaya to Karpathos,'
-            assert test_df.iloc[4].text=='published in 1997, in which sixty-five year old Sheila Paine describes her travels through some of'
-            assert test_df.iloc[5].text=='the turbulent territories of the former Soviet Union.  The extract begins at the point when Sheila'
-            assert test_df.iloc[6].text=='returns to Saratov station to try once again to buy a ticket for a train journey.'
         if year==2005:
             assert len(test_df)==9
-            assert test_df.iloc[0].text=='Margaret Forster writes about her grandmother, Margaret Ann Hind, a domestic servant in '
-            assert test_df.iloc[1].text=='Carlisle, a town in the north of England, in the 1890s. Her book is called Hidden Lives – A '
-            assert test_df.iloc[2].text=='Family Memoir. '
-            assert test_df.iloc[3].text=='The following text consists of a written and visual element. The written text is adapted from an '
-            assert test_df.iloc[4].text=='introduction by documentary photographer, Jenny Matthews, to her book of photographs entitled '
-            assert test_df.iloc[5].text=='Women and War. '
-            assert test_df.iloc[6].text=='Some people’s lives seem far from ordinary. Modelled on articles from a number of celebrity '
-            assert test_df.iloc[7].text=='magazines, the text below was written by a Leaving Certificate student. It offers a glimpse into the '
-            assert test_df.iloc[8].text=='lifestyle of imaginary rock star, Eva Maguire. '
             # These we will call subtile 2
             #assert test_df.loc[251].text=='World exclusive ! Irish Rock Diva speaks to readers from '   # if you incldue "starts_left" in conditions for subtitles this will not be captured.
             #assert test_df.loc[252].text=='her Italian villa. '
         if year==2007:
             assert len(test_df)==6  # Text 3 has no subtitles
-            assert test_df.iloc[0].text=='The following text is based on extracts from the recent publication, “1000 Films to Change your '
-            assert test_df.iloc[1].text=='Life”, edited by Simon Cropper.  '
-            assert test_df.iloc[2].text=='In 1930, wandering through London for a series of magazine articles, Virginia Woolf found a '
-            assert test_df.iloc[3].text=='city alive with bustling activity and excitement.  Here, novelist Monica Ali takes a 21st century '
-            assert test_df.iloc[4].text=='stroll in Woolf’s footsteps – and seventy-five years later finds London humming to a different '
-            assert test_df.iloc[5].text=='tune.  '
         if year==2008:
             assert len(test_df)==6   # Text 3 is a big image, needs ocr
-            assert test_df.iloc[0].text=='This text is adapted from Jon Savage’s book, “Teenage, the Creation of Youth, 1875 – 1945”,  '
-            assert test_df.iloc[1].text=='in which he traces the history of the modern teenager. '
-            assert test_df.iloc[2].text=='This text is taken from Clare Kilroy’s novel, “Tenderwire”, narrated in the voice of Eva  '
-            assert test_df.iloc[3].text=='Tyne, an Irish violinist living and working in New York. The story involves Alexander who '
-            assert test_df.iloc[4].text=='has offered Eva the opportunity to buy a rare violin, a Stradivarius, at a fraction of its market '
-            assert test_df.iloc[5].text=='value. However, this violin comes without documents of identity or rightful ownership. '
         if year==2019:
             assert len(test_df)==10
             assert test_df.iloc[0].text=='This\xa0edited\xa0piece\xa0is\xa0based\xa0on\xa0an\xa0article\xa0by\xa0Jeanette\xa0Winterson\xa0entitled,\xa0“What\xa0is\xa0Art\xa0for?”\xa0\xa0\xa0'
@@ -482,28 +458,12 @@ def test_identify_text_subtitles_old():
             assert test_df.iloc[9].text=='The\xa0Library\xa0Book,\xa0a\xa0series\xa0of\xa0essays\xa0by\xa0well‐known\xa0writers\xa0in\xa0support\xa0of\xa0public\xa0libraries.\xa0'
         if year==2022:
             assert len(test_df)==9
-            assert test_df.iloc[0].text=='This text is adapted from a feature article by Meadhbh McGrath entitled, Poet. Fashion icon. '
-            assert test_df.iloc[1].text=='Future president?.  It originally appeared in the magazine section of a weekend newspaper.  '
-            assert test_df.iloc[2].text=='This text is based on edited extracts from a book compiled by Tom Gatti entitled, Long Players. '
-            assert test_df.iloc[3].text=='The book is a collection of personal essays in which writers share their thoughts on the albums '
-            assert test_df.iloc[4].text=='that helped to shape them.  Extract Two features Man Booker prize winner, Nigerian, Ben Okri.  '
-            assert test_df.iloc[5].text=='TEXT 3 is based on edited extracts from Hugo Hamilton’s novel, The Pages.  Hamilton uses a '
-            assert test_df.iloc[6].text=='book – the novel, Rebellion, by Jewish writer Joseph Roth – as the narrator.  In these extracts, '
             assert test_df.iloc[7].text=='we witness the book telling its own story, including its rescue from the Nazi book burning in '
             assert test_df.iloc[8].text=='1933. '
             # assert test_df.loc[189].text=='Extract 1: Tom Gatti from the introduction to '  # These are "column titles"
             # assert test_df.loc[190].text=='his book, Long Players. '
         if year==2023:
             assert len(test_df)==12
-            assert test_df.iloc[0].text=='This text is based on an edited extract from Gravel Heart, a novel by Abdulrazak Gurnah, 2021 '
-            assert test_df.iloc[1].text=='Nobel Prize winner for literature.  In this extract Salim, from a small island village in Zanzibar, '
-            assert test_df.iloc[2].text=='comes to stay with his uncle in London to further his education.  He doesn’t know how to belong '
-            assert test_df.iloc[3].text=='in this strange city and feels cut off from the world he has left behind.'
-            assert test_df.iloc[4].text=='Text 2 consists of two elements.  The first is an edited text by Henry Eliot entitled, This Must be the '
-            assert test_df.iloc[5].text=='Place which focuses on literary locations.  The second is an iconic photograph, taken in 1907 and '
-            assert test_df.iloc[6].text=='published in Time magazine’s 100 most influential, historical pictures.  Both elements illustrate '
-            assert test_df.iloc[7].text=='how we can experience different worlds through words and pictures.    '
-            assert test_df.iloc[8].text=='TEXT 3 consists of two edited articles on the subject of Artificial Intelligence (AI) published in '
             assert test_df.iloc[9].text=='July 2022: an introduction from Patricia Scanlon, Ireland’s first Artificial Intelligence '
             assert test_df.iloc[10].text=='Ambassador, published in The Irish Times and a feature by Ben Spencer printed in The Sunday '
             assert test_df.iloc[11].text=='Times magazine entitled, “I’m better than the Bard.”   '
