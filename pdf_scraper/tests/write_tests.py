@@ -19,7 +19,7 @@ subject="english"
 
 
 test_categories = ["dual_col", "caption","instruction", "footer", "section","title","subtitle","subsubtitle"]
-cat = "subtitle"
+cat = "section"
 
 out_dir = Path(__file__).parent.resolve() / Path(f"resources/expected_{cat}s")
 out_dir.mkdir(parents=True, exist_ok=True)
