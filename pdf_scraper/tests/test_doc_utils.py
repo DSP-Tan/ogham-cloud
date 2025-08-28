@@ -420,7 +420,7 @@ def test_identify_text_subtitles(year):
     doc.close()
 
 
-def test_identify_text_subtitles_old():
+def old_test_identify_text_subtitles():
     for year in range(2001,2026):
         doc = open_exam(year, "english", "al",1)
         df = get_doc_line_df(doc)
