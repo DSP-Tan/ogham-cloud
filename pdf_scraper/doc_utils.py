@@ -10,6 +10,7 @@ from pdf_scraper.line_utils  import get_line_df, get_line_text, get_level_line_c
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
 from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips
 from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions
+from pdf_scraper.general_utils import bbox_horiz_dist, shared_centre
 
 subject_code = {
     "irish": "001",
@@ -100,8 +101,8 @@ def filter_images(images):
 
 def assign_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict]:
     """
-    Add captions to images based on overlapping boxes. For english paper one, we
-    will not caption anything on the first page, or after the 8th
+    Add captions to images based on overlapping boxes. 
+    For english paper one, we will not caption anything on the first page, or after the 8th
     """
     all_indices = []
     count=0
@@ -110,7 +111,7 @@ def assign_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[d
             image["caption"]=""
             continue
         indices=get_in_image_lines(image,doc_df)
-        doc_df.loc[indices, "caption"]=1
+        doc_df.loc[indices, "caption1"]=1
         if len(indices)>0:
             all_indices.append(indices)
             captions = get_in_image_captions(image,doc_df, indices)
@@ -210,7 +211,7 @@ def identify_text_headers(doc_df, doc_width):
     bold_font     = doc_df.mode_font.str.contains("Bold")
     pages         = (doc_df.page > 1) & (doc_df.page <9)
     centred       = ( (doc_df.x0 + doc_df.x1)/2 > middle -30 ) & ( (doc_df.x0 + doc_df.x1)/2 < middle +30 )
-    uncategorised = (doc_df.section==0) & (doc_df.caption ==0) & (doc_df.instruction==0)
+    uncategorised = (doc_df.section==0) & (doc_df.caption1 ==0) & (doc_df.instruction==0)
     top           = doc_df['rank'] <= 3
 
     mask = large_font  & pages & uncategorised & centred & top #& bold_font 
@@ -258,6 +259,24 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
 
     return df
 
+def identify_vertical_captions(df,image):
+    """
+    This function will identify any captions to image contained in df. 
+    It will look for captions vertically above or below the image.
+    """
+    i_x0, i_y0, i_x1, i_y1 = image["bbox"]
+    img_centre = (i_x0 + i_x1)/2
+    within_image_frame = (df.x0 >= i_x0) & (df.x1 <= i_x1)
+    centred = df.apply( lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"]) , axis=1 )
+    uncategorised    = (df.section==0) & (df.caption1 ==0) & (df.instruction==0) & (df.title ==0 ) & (df.footer==0) & (df.subtitle ==0 )
+    above_top        = abs(i_y0 - df.y1) <= df.h*2.0
+    below_bottom     = abs(df.y0 -i_y1)  <= df.h*2.0
+    page             = df.page == image["page"]
+    mask = page & within_image_frame & centred &  uncategorised & (above_top | below_bottom)
+
+    df.loc[mask, "caption2"] = 1
+    return df
+
 
 def identify_subtitles(doc_df,doc_width):
     if doc_df.section.sum() == 0:
@@ -272,7 +291,7 @@ def identify_subtitles(doc_df,doc_width):
     starts_left   = doc_df.x0 < doc_width/2
     pages         = (doc_df.page > 1) & (doc_df.page <9)
     title_on_page = doc_df.groupby('page')['title'].transform('sum') >0
-    uncategorised = (doc_df.section==0) & (doc_df.caption ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0)
+    uncategorised = (doc_df.section==0) & (doc_df.caption1 ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0)
     after_headers = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=6
 
     mask = pages & uncategorised & after_headers & title_on_page 
@@ -298,7 +317,7 @@ def identify_subsubtitles(doc_df,doc_width):
     title_on_page    = doc_df.groupby('page')['title'].transform('sum') >0
     subtitle_on_page = doc_df.groupby('page')['subtitle'].transform('sum') >0
     pages            = (doc_df.page > 1) & (doc_df.page <9)
-    uncategorised    = (doc_df.section==0) & (doc_df.caption ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0) & (doc_df.subtitle ==0 )
+    uncategorised    = (doc_df.section==0) & (doc_df.caption1 ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0) & (doc_df.subtitle ==0 )
     after_subtitles  = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=10
     italic_or_bold   = (doc_df.mode_font.str.contains("Bold") | doc_df.mode_font.str.contains("Italic") )
     
@@ -315,7 +334,6 @@ def identify_subsubtitles(doc_df,doc_width):
         
         if uncentred: 
             doc_df.loc[page_df.index, "subsubtitle"] = 0
-
 
 
     return doc_df
