@@ -1,8 +1,11 @@
 import numpy  as np
 import pandas as pd
 from PIL import Image
+from io import BytesIO
 import io
 import fitz
+
+import matplotlib.pyplot as plt
 
 def is_point_image(img, threshold=5):
     x0, y0, x1, y1 = img["bbox"]
@@ -104,3 +107,24 @@ def get_in_image_captions(image: dict, doc_df: pd.DataFrame, indices: pd.Index) 
     caption = "\n".join(lines).strip()
 
     return caption
+
+def show_image(image):
+    img_bytes = image["image"]
+    img_stream = BytesIO(img_bytes)
+    img = Image.open(img_stream)
+    display(img)
+
+def show_all_imgs(nrows,ncols, imgs):
+    fig, axes = plt.subplots(nrows, ncols, figsize=(18, 5))
+    for i, ax in enumerate(axes.flat):
+        if i < len(imgs):  # Only show the available imgs
+            img_bytes = imgs[i]["image"]
+            img = Image.open(BytesIO(img_bytes))
+            ax.imshow(img)
+            ax.set_title("Page: "+str(imgs[i]['page'])+"; "+imgs[i]["caption"] )
+            ax.axis('off')
+        else:
+            ax.axis('off')  # Hide empty subplot
+
+    plt.tight_layout()
+    plt.show()
