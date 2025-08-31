@@ -30,6 +30,9 @@ def open_exam(year:int, subject="english", level="al", paper=1):
 
     return fitz.open(pdf_file)
 
+def get_path_from_doc(doc):
+    return str(doc).split("(")[1].split(")")[0].replace('\'',"")
+
 def get_doc_year(doc):
     """Returns year of exam of document using file path."""
     year = int(str(doc).split("_")[1][:4])
@@ -270,6 +273,7 @@ def identify_vertical_captions(df,image):
     centred = df.apply( lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"]) , axis=1 )
     uncategorised    = (df.section==0) & (df.caption1 ==0) & (df.instruction==0) & (df.title ==0 ) & (df.footer==0) & (df.subtitle ==0 )
     above_top        = abs(i_y0 - df.y1) <= df.h*2.0
+    # Consider removing "above_top" as a condition. There are no actual captions above figures.
     below_bottom     = abs(df.y0 -i_y1)  <= df.h*2.0
     page             = df.page == image["page"]
     mask = page & within_image_frame & centred &  uncategorised & (above_top | below_bottom)
