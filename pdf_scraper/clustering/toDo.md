@@ -60,4 +60,10 @@ of lines contiguous in y0, and clusters of lines contiguous in x0.
 Of course this will not implement the "line distance" concept,  but just using x0 and y0 should be sufficient to get vertical
 and horizontally grouped lines, and to separate columns too.
 
+## dBscan document categorisation strategy
 
+- Two consecutive clusterings of bboxes. First y0 then x0, each with characteristic eps for the dimension
+- Image bboxes must be added to the dataframe
+- Distances must be correctly calculated between the ends of boxes. You cannot just use x0 or y0.
+
+- - Start on just one page. Maybe 2019 page 6, with the tricky caption.
