@@ -208,3 +208,20 @@ def iteration_print(dists, clusts, X,labels, X_cols, word_mask, i_w, verbosity=1
         print(labels[:10])
     
     return None
+
+
+def find_y0_dL(df: pd.DataFrame, cat: str = "" ) -> float:
+    """
+    This will find the median spacing between y0 values for all the pages of the 
+    document that contain an instance a line of category "cat".
+    """
+    dLs = []
+    pages = np.unique(df[df[cat]==1].page) if cat else np.unique(df.page)
+    for page in pages:
+        page_df = df[(df.page==page)].copy()
+        page_df.sort_values(by=["x0","y0"],inplace=True)
+        diffs = page_df.y0.diff().dropna()
+        diffs = diffs[diffs !=0]
+        dLs.append(diffs)
+    dL = np.median( np.concat(dLs, axis=0) )
+    return dL
