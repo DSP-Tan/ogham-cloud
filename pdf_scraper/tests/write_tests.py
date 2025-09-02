@@ -8,7 +8,7 @@ import sys, re
 from pdf_scraper.block_utils import identify_dual_column, get_block_text, sort_dual_column_blocks
 from pdf_scraper.doc_utils   import open_exam, get_doc_line_df, identify_section_headers, identify_text_headers
 from pdf_scraper.doc_utils   import identify_footers, identify_instructions, identify_subtitles, identify_subsubtitles
-from pdf_scraper.doc_utils   import get_images,filter_images, assign_in_image_captions
+from pdf_scraper.doc_utils   import get_images,filter_images, assign_in_image_captions, identify_vertical_captions
 from pdf_scraper.draw_utils  import get_pink_boundary, get_fill_df, in_the_pink
 from pdf_scraper.line_utils  import get_line_df, print_line_table, get_all_lines, line_is_empty, clean_line_df
 
@@ -19,7 +19,7 @@ subject="english"
 
 
 test_categories = ["dual_col", "caption","instruction", "footer", "section","title","subtitle","subsubtitle"]
-cat = "caption"
+cat = "caption2"
 write = False
 
 out_dir = Path(__file__).parent.resolve() / Path(f"resources/expected_{cat}s")
@@ -44,6 +44,10 @@ for year in range(2001,2026):
     identify_text_headers(df, doc_width)
     identify_subtitles(df, doc_width)
     identify_subsubtitles(df, doc_width)
+    for image in images: 
+        if image["page"] <2 or image["page"] >8:
+            continue
+        identify_vertical_captions(df,image)
 
     
     test_df = df[df[cat] == 1]
@@ -61,6 +65,6 @@ for year in range(2001,2026):
     print(f"    assert len(test_df)=={len(test_df)}")
     for i, i_row in enumerate(test_df.iterrows() ):
         idx, row = i_row
-        print(f"    assert test_df.iloc[{i}].text=={repr(row.text)}")
+        print(f"    assert test_df.iloc[{i}].text=={repr(row.text)}; page = {row.page}")
 
     doc.close()
