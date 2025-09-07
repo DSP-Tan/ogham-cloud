@@ -4,6 +4,10 @@ from numpy.linalg import norm
 
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose       import make_column_transformer
+from sklearn.metrics       import pairwise_distances
+from sklearn.cluster       import DBSCAN
+
+from pdf_scraper.line_utils import get_category_boxes
 
 def print_clusters(clusts,X_cols, k):
     print( pd.DataFrame(clusts,columns=X_cols,index=["clust0","clust1"]).head(k) )
@@ -225,3 +229,65 @@ def find_y0_dL(df: pd.DataFrame, cat: str = "" ) -> float:
         dLs.append(diffs)
     dL = np.median( np.concat(dLs, axis=0) )
     return dL
+
+
+def split_cluster(df: pd.DataFrame, i_clust: int,  metric, eps, dir, verbose=False):
+    if verbose: print(f"scanning cluster {i_clust}")
+    last_id  = df.cluster.max()
+    clust_df = df[df.cluster==i_clust].copy()
+
+    X             = pairwise_distances(clust_df[dir],metric=metric)
+    scan          = DBSCAN(eps=eps, min_samples=1,metric="precomputed")
+    labels        = scan.fit_predict(X)
+    
+    unique_labels = np.unique(labels)
+    n_labels = len( unique_labels )
+    if n_labels ==1:
+        if verbose: print("No split")
+        return  unique_labels
+    
+    labels[labels!=0] += last_id
+    labels[labels==0] += i_clust
+
+    df.loc[clust_df.index, "cluster"] = labels
+    unique_labels = np.unique(labels)
+    
+    if verbose: print(f"Cluster {i_clust} split {dir} with eps = {round(eps)} into {n_labels} clusters: {unique_labels}")
+
+    return unique_labels
+
+def hdbscan(df: pd.DataFrame, max_iter: int, eps_x: float, eps_y: float, metric, verbose=False):
+    dir1 = ["y0"] if metric=="euclidean" else ["y0","y1"]
+    dir2 = ["x0"] if metric=="euclidean" else ["x0","x1"]
+    dirs = ((dir1, eps_y), (dir2,eps_x))
+    i_dir, n_fail, df["cluster"] = (0, 0, 0)
+    N_clusters=1
+    rectangies, labia = ([], [])
+    
+    for n_loop in range(max_iter):
+        # assign the direction and cluster numbers for this round of scanning
+        dir, eps  = dirs[i_dir]
+    
+        if verbose: print(f"Full Scan {n_loop} in {dir} with eps={eps:<6.0f}")
+        if n_fail >=4:
+            break
+        # Loop over all current clusters and break up in dir
+        for i_clust in np.unique(df.cluster):
+            split_cluster(df, i_clust, metric, eps, dir, verbose=verbose)
+                
+        labelos = np.unique(df.cluster)
+        n_clusters = len(labelos)
+        i_dir = 1 if i_dir==0 else 0
+    
+        if n_clusters == N_clusters:
+            n_fail +=1
+            continue
+        else:
+            n_fail = 0
+            N_clusters = n_clusters
+    
+        rectangies.append(get_category_boxes(df, 'cluster') )
+        labia.append( np.unique(df.cluster) )
+        if verbose: print(f"Total {n_clusters} clusters: {labelos}")
+
+    return ( rectangies, labia )
