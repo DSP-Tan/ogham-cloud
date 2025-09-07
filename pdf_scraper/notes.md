@@ -41,6 +41,20 @@ can be simplified.
 An assert check for only non-empty lines could be used in a function insteada if you want to do that, rather
 than the current list comprehension that you use.
 
+## Ontology
+
+In block_utils we will have functions which apply to blocks or to a group of blocks which is small than
+the full document.
+
+In line_utils we will have all functions that work on a single line, or on a group of lines smaller than
+the full document.
+
+In doc_utils we will have functions that work on a full document, either in the form of a line dataframe
+or just a fitz document. doc_utils also comprises any functions which deal in the integration of disparate
+elements. i.e. combination of images with lines, combination of lines with drawings.
+
+image_utils has all the utilities that work on images.
+
 # Short cuts taken
 
 The major weakness of this code is how the dual column blocks are identified and sorted. This will break
