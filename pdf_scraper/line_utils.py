@@ -198,6 +198,13 @@ def get_df_bbox(line_df):
     y1 = line_df.y1.max()
     return tuple( float(i) for i in [x0,y0,x1,y1] )
 
+def get_category_boxes(df, cat) -> list[fitz.Rect]:
+    rectangies = []
+    clust_labes = np.unique(df[cat])[1:] if -1 in df[cat] else np.unique(df[cat])
+    for i in clust_labes:
+        temp_df = df[df[cat]==i]
+        rectangies.append( fitz.Rect(get_df_bbox(temp_df)) )
+    return rectangies
 
 def is_buffered_line(df: pd.DataFrame, threshold: int = 3) -> pd.Series:
     """
@@ -358,3 +365,4 @@ def closest_vertical_line(bbox:tuple[float,float,float,float], df: pd.DataFrame,
         axis=1
     )
     return (dists.idxmin(), dists.min() )
+
