@@ -69,15 +69,20 @@ def get_doc_line_df(doc):
     return doc_df
 
 def enrich_doc_df_with_images(df, images):
+    """
+    This function adds lines to the doc df representing images. It contains the coordinates of the 
+    bbox of the image, and a "image" as the category column.
+    """
     img_dict = { }
     for i, coord in enumerate(["x0","y0","x1","y1"]):
         img_dict[coord]   = [ img["bbox"][i] for img in images ]
     img_dict["page"]  = [ img["page"]   for img in images]
     img_dict["image"] = [1]*len(images)
     img_df = pd.DataFrame(img_dict)    
-    rich_df = pd.concat([df, img_df],ignore_index=True).sort_values(by=["page","y0"])
+    rich_df = pd.concat([df, img_df],ignore_index=True).sort_values(by=["page","y0"],ignore_index=True)
     
     return rich_df
+
 
 def get_raw_lines(doc, row: pd.Series):
     n_page = int(row.page)
