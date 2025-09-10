@@ -289,10 +289,11 @@ def identify_vertical_captions(df,image):
     centred = df.apply( lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"]) , axis=1 )
     uncategorised    = (df.section==0) & (df.caption1 ==0) & (df.instruction==0) & (df.title ==0 ) & (df.footer==0) & (df.subtitle ==0 )
     above_top        = abs(i_y0 - df.y1) <= df.h*2.0
-    # Consider removing "above_top" as a condition. There are no actual captions above figures.
+    # We will not use above_top as a condition. There are no captions above images in all pdfs I have seen and it causes non-caption 
+    # text to be captured.
     below_bottom     = abs(df.y0 -i_y1)  <= df.h*2.0
     page             = df.page == image["page"]
-    mask = page & within_image_frame & centred &  uncategorised & (above_top | below_bottom)
+    mask = page & within_image_frame & centred &  uncategorised &  below_bottom
 
     df.loc[mask, "caption2"] = 1
     return df
