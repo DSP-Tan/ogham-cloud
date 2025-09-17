@@ -3,3 +3,5 @@ build/
 ogham_cloud.egg-info/
 *pycache*
 .vscode
+.env
+
