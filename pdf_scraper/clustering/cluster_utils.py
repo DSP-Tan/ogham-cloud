@@ -268,7 +268,7 @@ def hdbscan(df: pd.DataFrame, max_iter: int, eps_x: float, eps_y: float, metric,
         # assign the direction and cluster numbers for this round of scanning
         dir, eps  = dirs[i_dir]
     
-        if verbose: print(f"Full Scan {n_loop} in {dir} with eps={eps:<6.0f}")
+        if verbose: print(f"Full Scan {n_loop} in {dir} with eps={eps:<6.2f}")
         if n_fail >=4:
             break
         # Loop over all current clusters and break up in dir
