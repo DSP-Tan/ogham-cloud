@@ -121,7 +121,6 @@ def get_line_df(lines):
     font_size_list = [[span["size"] for span in line["spans"]  ]  for line in lines]
     mode_font_size = [ mode([span["size"] for span in line["spans"]  ]).mode for line in lines ]
     font_size      = [get_font_size(line) for line in lines]
-    dual_col       = [0]*len(lines)
     caption1       = [0]*len(lines)
     caption2       = [0]*len(lines)
     instruction    = [0]*len(lines)
@@ -131,12 +130,13 @@ def get_line_df(lines):
     subtitle       = [0]*len(lines)
     subsubtitle    = [0]*len(lines)
     image          = [0]*len(lines)
+    category       = ["uncategorised"]*len(lines)
 
 
     data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,
     "common_font":common_font,"mode_font":mode_font,"n_words":n_words,"w":w,"h":h,
     "text":text, "font_sizes":font_size_list, "mode_font_size":mode_font_size,
-    "font_size":font_size, "dual_col":dual_col, "caption1":caption1, "caption2":caption2,
+    "font_size":font_size, "category":category, "caption1":caption1, "caption2":caption2,
     "instruction":instruction, "footer":footer, "section":section,
     "title":title, "subtitle":subtitle, "subsubtitle":subsubtitle, "image":image}
     return pd.DataFrame(data_dict)

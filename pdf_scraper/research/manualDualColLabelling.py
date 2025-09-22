@@ -28,7 +28,7 @@ def setDualCols(grand_df: pd.DataFrame, page_num:int, bookends: tuple[str]):
     bottom = max(indices).values[0]
     dual_cols = page_df[top:bottom+1].copy()
     dual_cols.sort_values(["x0","y0"],inplace=True)
-    dual_cols["daul_col"]=1
+    dual_cols["category"]="dual_col"
 
     grand_df.loc[top:bottom+1] = dual_cols
 
@@ -65,4 +65,4 @@ bottom = max(indices)
 
 
 page2_text = page2_df[top.values[0]:bottom.values[0]+1].sort_values(["x0","y0"])
-page2_text["dual_col"]=1
+page2_text["category"]="dual_col"
