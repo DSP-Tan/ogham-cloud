@@ -218,6 +218,10 @@ def find_y0_dL(df: pd.DataFrame, cat: str = "" ) -> float:
     """
     This will find the median spacing between y0 values for all the pages of the 
     document that contain an instance a line of category "cat".
+
+    Note: This method is deprecated for finding the median dL between lines. It does not
+    give good values when dual columns are involved, particularly two columns slightly offset
+    in y. See "get_vert_neigh_dist" instead. 
     """
     dLs = []
     pages = np.unique(df[df[cat]==1].page) if cat else np.unique(df.page)
@@ -230,6 +234,32 @@ def find_y0_dL(df: pd.DataFrame, cat: str = "" ) -> float:
     dL = np.median( np.concat(dLs, axis=0) )
     return dL
 
+
+def get_vert_neigh_dist(row, dff, dir):
+    """
+    This function returns the distance to the next line , in the direction dirr.
+
+    If dir is just one dimensional, "y0", the y0 difference with next line will be calculated.
+    If dir is the two dimensional ["y0","y1"], the end to end next line distance will be calculated.
+
+    "next line" means the line closest in dir, but on the same side of the document. This means it will
+    not look for the next line in a parallel column of text.
+
+    Examples: 
+    dLs = dff.apply(lambda row: get_vert_neigh_dist(row, dff, ['y0','y1']),axis=1)
+    dy0s = dff.apply(lambda row: get_vert_neigh_dist(row, dff, ['y0']),axis=1)
+    """
+    same_side  = (row.x0 < middle )*(dff.x0 < middle) == True
+    below      = (dff.y0 > row.y0)
+    mask       = same_side & below
+    other_rows = dff.loc[mask , dir ]
+    metric     = "euclidean" if len(dir)==1 else df_bbox_dist
+
+    if len(other_rows)==0:
+        return np.nan
+
+    
+    return pairwise_distances(row[dir].values.reshape(1,-1) , Y=other_rows.values,  metric=metric).min()
 
 def split_cluster(df: pd.DataFrame, i_clust: int,  metric, eps, dir, verbose=False):
     if verbose: print(f"scanning cluster {i_clust}")
