@@ -77,7 +77,7 @@ def enrich_doc_df_with_images(df, images):
     for i, coord in enumerate(["x0","y0","x1","y1"]):
         img_dict[coord]   = [ img["bbox"][i] for img in images ]
     img_dict["page"]  = [ img["page"]   for img in images]
-    img_dict["image"] = [1]*len(images)
+    img_dict["category"] = ["image"]*len(images)
     img_df = pd.DataFrame(img_dict)    
     rich_df = pd.concat([df, img_df],ignore_index=True).sort_values(by=["page","y0"],ignore_index=True)
     
@@ -130,7 +130,7 @@ def assign_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[d
             image["caption"]=""
             continue
         indices=get_in_image_lines(image,doc_df)
-        doc_df.loc[indices, "caption1"]=1
+        doc_df.loc[indices, "category"]="caption1"
         if len(indices)>0:
             all_indices.append(indices)
             captions = get_in_image_captions(image,doc_df, indices)
@@ -164,7 +164,7 @@ def identify_instructions(doc_df):
     pattern2 = doc_df.text.str.contains(r"^Candidates may NOT")
     pattern3 = doc_df.text.str.contains(r"^Questions.*A.*and.*B.*carry.*50.*marks.*each")
     mask = page & (pattern1 | pattern2 | pattern3)
-    doc_df.loc[mask, "instruction"] = 1
+    doc_df.loc[mask, "category"] = "instruction"
     return doc_df
 
 def identify_footers(doc_df):
@@ -184,7 +184,7 @@ def identify_footers(doc_df):
 
     mask = bottom & (pattern1 | pattern2 | pattern3 | pattern4 )
 
-    doc_df.loc[mask, "footer"] = 1
+    doc_df.loc[mask, "category"] = "footer"
     doc_df.drop(columns=["rank"],inplace=True)
 
     return doc_df
@@ -212,30 +212,31 @@ def identify_section_headers(doc_df):
 
     mask = top & (pattern1 | pattern2 | pattern3 | pattern4 )
 
-    doc_df.loc[mask, "section"] = 1
+    doc_df.loc[mask, "category"] = "section"
     doc_df.drop(columns=["rank"],inplace=True)
 
     return doc_df
 
 def identify_text_headers(doc_df, doc_width):
-    if doc_df.section.sum() == 0:
+    if (doc_df.category=="section").sum() == 0:
         raise RuntimeError("Assign section headings first")
     
-    doc_df['rank'] = doc_df[doc_df.section==0].groupby('page')['y0'].rank(method='first', ascending=True)
-    middle        = doc_width/2
-    median_size   = doc_df.font_size.median()
-    standard_font = doc_df.mode_font.mode()[0]
+    middle         = doc_width/2
+    median_size    = doc_df.font_size.median()
+    standard_font  = doc_df.mode_font.mode()[0]
 
+    uncategorised  = doc_df.category=="uncategorised"
     large_font    = doc_df.font_size >= median_size*1.15
     bold_font     = doc_df.mode_font.str.contains("Bold")
     pages         = (doc_df.page > 1) & (doc_df.page <9)
     centred       = ( (doc_df.x0 + doc_df.x1)/2 > middle -30 ) & ( (doc_df.x0 + doc_df.x1)/2 < middle +30 )
-    uncategorised = (doc_df.section==0) & (doc_df.caption1 ==0) & (doc_df.instruction==0)
-    top           = doc_df['rank'] <= 3
+
+    doc_df['rank'] = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True)
+    top            = doc_df['rank'] <= 3
 
     mask = large_font  & pages & uncategorised & centred & top #& bold_font 
 
-    doc_df.loc[mask, "title"] = 1 
+    doc_df.loc[mask, "category" ] = "title"  
     doc_df.drop(columns=["rank"],inplace=True)
 
     return doc_df
@@ -249,21 +250,23 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
     
     This function assumes that a dataframe with rows ordered by y0 is input.
     """
-    if len(df[df[cat]==1]) <2:
+    cat_mask = (df.category == cat)
+
+    if len(df[cat_mask]) <2:
         return df
 
     line_scale = 1.25
-    pages = np.unique(df[df[cat]==1].page)
+    pages = np.unique(df[cat_mask].page)
 
     dLs=[]
     for page in pages:
-        temp_df = df[(df.page==page) & df[cat]==1].copy()
+        temp_df = df[(df.page==page) & cat_mask ].copy()
         diffs = temp_df.y0.diff().dropna()
         dLs.append(diffs)
     dL = np.median(np.concat(dLs,axis=0) )
 
     for i in pages:
-        page_df = df[(df.page ==i) & (df[cat]==1) ].copy()
+        page_df = df[(df.page ==i) & cat_mask ].copy()
         if len(page_df) <2:
             continue
         scan = DBSCAN(eps=dL*line_scale, min_samples=3).fit(page_df[["y0"]])
@@ -273,8 +276,8 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
         if len(np.unique(scan.labels_)) == 1:
             continue
         not_contig_group = (scan.labels_ != scan.labels_[0])
-        page_df.loc[not_contig_group, cat] = 0
-        df.loc[page_df.index, cat] = page_df[cat]
+        page_df.loc[not_contig_group, "category"] = "uncategorised"
+        df.loc[page_df.index, "category"] = page_df.category
 
     return df
 
@@ -287,7 +290,7 @@ def identify_vertical_captions(df,image):
     img_centre = (i_x0 + i_x1)/2
     within_image_frame = (df.x0 >= i_x0) & (df.x1 <= i_x1)
     centred = df.apply( lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"]) , axis=1 )
-    uncategorised    = (df.section==0) & (df.caption1 ==0) & (df.instruction==0) & (df.title ==0 ) & (df.footer==0) & (df.subtitle ==0 )
+    uncategorised    = df.category=="uncategorised"
     above_top        = abs(i_y0 - df.y1) <= df.h*2.0
     # We will not use above_top as a condition. There are no captions above images in all pdfs I have seen and it causes non-caption 
     # text to be captured.
@@ -295,14 +298,14 @@ def identify_vertical_captions(df,image):
     page             = df.page == image["page"]
     mask = page & within_image_frame & centred &  uncategorised &  below_bottom
 
-    df.loc[mask, "caption2"] = 1
+    df.loc[mask, "category"] = "caption2"
     return df
 
 
 def identify_subtitles(doc_df,doc_width):
-    if doc_df.section.sum() == 0:
+    if (doc_df.category=="section").sum() == 0:
         raise runtimeerror("assign section headings first")
-    if doc_df.title.sum() == 0:
+    if (doc_df.category=="title").sum() == 0:
         raise runtimeerror("assign text headers first")
 
     doc_df["counts"]   = get_level_line_counts(doc_df, 0.9)
@@ -311,13 +314,13 @@ def identify_subtitles(doc_df,doc_width):
     bold_font     = doc_df.mode_font.str.contains("Bold")
     starts_left   = doc_df.x0 < doc_width/2
     pages         = (doc_df.page > 1) & (doc_df.page <9)
-    title_on_page = doc_df.groupby('page')['title'].transform('sum') >0
-    uncategorised = (doc_df.section==0) & (doc_df.caption1 ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0)
+    title_on_page = (doc_df.category=='title').groupby(doc_df.page).transform('sum') >0
+    uncategorised = doc_df.category == "uncategorised"
     after_headers = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=6
 
     mask = pages & uncategorised & after_headers & title_on_page 
     mask2 = ( bold_font.astype(int) + starts_left.astype(int) + single_line.astype(int) ) >=2
-    doc_df.loc[mask & mask2 , "subtitle"] = 1 
+    doc_df.loc[mask & mask2 , "category"] = "subtitle"
     
     doc_df = remove_non_contiguous_lines(doc_df, "subtitle")
 
@@ -325,28 +328,28 @@ def identify_subtitles(doc_df,doc_width):
 
 
 def identify_subsubtitles(doc_df,doc_width):
-    if doc_df.section.sum() == 0:
+    if (doc_df.category=="section").sum() == 0:
         raise runtimeerror("assign section headings first")
-    if doc_df.title.sum() == 0:
+    if (doc_df.category=="title").sum() == 0:
         raise runtimeerror("assign text titles first")
-    if doc_df.subtitle.sum() == 0:
+    if (doc_df.category=="subtitle").sum() == 0:
         raise runtimeerror("assign text subtitles first")
 
     middle        = doc_width/2
 
     single_line      = (doc_df.counts == 0)
-    title_on_page    = doc_df.groupby('page')['title'].transform('sum') >0
-    subtitle_on_page = doc_df.groupby('page')['subtitle'].transform('sum') >0
+    title_on_page    = (doc_df.category=='title').groupby(doc_df.page).transform('sum') >0
+    subtitle_on_page = (doc_df.category=='subtitle').groupby(doc_df.page).transform('sum') >0
     pages            = (doc_df.page > 1) & (doc_df.page <9)
-    uncategorised    = (doc_df.section==0) & (doc_df.caption1 ==0) & (doc_df.instruction==0) & (doc_df.title ==0 ) & (doc_df.footer==0) & (doc_df.subtitle ==0 )
+    uncategorised    = doc_df.category == "uncategorised"
     after_subtitles  = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=10
     italic_or_bold   = (doc_df.mode_font.str.contains("Bold") | doc_df.mode_font.str.contains("Italic") )
-    
+
     mask = single_line & title_on_page & subtitle_on_page & pages & uncategorised & after_subtitles & italic_or_bold
-    doc_df.loc[mask, "subsubtitle"] = 1
+    doc_df.loc[mask, "category"] = "subsubtitle"
     doc_df = remove_non_contiguous_lines(doc_df, "subsubtitle")
 
-    subsub_df =doc_df[doc_df.subsubtitle==1].copy()
+    subsub_df =doc_df[doc_df.category=="subsubtitle"].copy()
     for page in np.unique(subsub_df.page):
         page_df = subsub_df[subsub_df.page==page]
         x0, y0, x1, y1 = get_df_bbox(page_df)
@@ -354,7 +357,7 @@ def identify_subsubtitles(doc_df,doc_width):
         uncentred = not (x0 <= middle and x1 >= middle)
         
         if uncentred: 
-            doc_df.loc[page_df.index, "subsubtitle"] = 0
+            doc_df.loc[page_df.index, "category"] = "uncategorised"
 
 
     return doc_df

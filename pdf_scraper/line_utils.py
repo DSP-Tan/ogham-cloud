@@ -121,24 +121,13 @@ def get_line_df(lines):
     font_size_list = [[span["size"] for span in line["spans"]  ]  for line in lines]
     mode_font_size = [ mode([span["size"] for span in line["spans"]  ]).mode for line in lines ]
     font_size      = [get_font_size(line) for line in lines]
-    caption1       = [0]*len(lines)
-    caption2       = [0]*len(lines)
-    instruction    = [0]*len(lines)
-    footer         = [0]*len(lines)
-    section        = [0]*len(lines)
-    title          = [0]*len(lines)
-    subtitle       = [0]*len(lines)
-    subsubtitle    = [0]*len(lines)
-    image          = [0]*len(lines)
     category       = ["uncategorised"]*len(lines)
 
 
     data_dict={"x0":x0,"y0":y0,"x1":x1,"y1":y1,"dL":dL, "n_spans":n_spans,"font_list":font_list,
     "common_font":common_font,"mode_font":mode_font,"n_words":n_words,"w":w,"h":h,
     "text":text, "font_sizes":font_size_list, "mode_font_size":mode_font_size,
-    "font_size":font_size, "category":category, "caption1":caption1, "caption2":caption2,
-    "instruction":instruction, "footer":footer, "section":section,
-    "title":title, "subtitle":subtitle, "subsubtitle":subsubtitle, "image":image}
+    "font_size":font_size, "category":category }
     return pd.DataFrame(data_dict)
 
 def get_level_line_counts(df, overlap_factor):

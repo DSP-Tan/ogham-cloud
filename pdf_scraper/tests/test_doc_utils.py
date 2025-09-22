@@ -64,7 +64,7 @@ def test_identify_footers():
         doc = open_exam(year,"english","al",1)
         doc_df = get_doc_line_df(doc)
         doc_df = identify_footers(doc_df)
-        foots = doc_df[doc_df.footer==1].copy()
+        foots = doc_df[doc_df.category=="footer"].copy()
         if year ==2001:
             assert len(foots)==10
         elif year >2001 and year <= 2009:
@@ -97,7 +97,7 @@ def check_category(year, subject, level, paper, cat):
     identify_subtitles(df, doc_width)
     identify_subsubtitles(df, doc_width)
 
-    got = df[df[cat] == 1].text.tolist()
+    got = df[df.category == cat].text.tolist()
     expected = load_expected(year, cat ,subject, level, paper)
 
     assert got == expected
@@ -136,7 +136,7 @@ def test_identify_text_subsubtitles():
         identify_text_headers(df, doc_width)
         identify_subtitles(df,doc_width)
         identify_subsubtitles(df,doc_width)
-        test_df = df[df.subsubtitle==1].copy()
+        test_df = df[df.category=="subsubtitle"].copy()
         if year==2003:
             assert len(test_df)==7
             assert test_df.iloc[0].text=='It was King Pelias who sent them out.  He had heard an oracle which warned him of a dreadful tale –'

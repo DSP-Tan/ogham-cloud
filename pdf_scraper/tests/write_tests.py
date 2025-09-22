@@ -18,8 +18,9 @@ level="al"
 subject="english"
 
 
-test_categories = ["dual_col", "caption","instruction", "footer", "section","title","subtitle","subsubtitle"]
-cat = "caption2"
+test_categories = ["dual_col", "caption1","caption2", "instruction", "footer", "section","title","subtitle","subsubtitle"]
+#cat = "caption2"
+cat = "subsubtitle"
 write = False
 
 out_dir = Path(__file__).parent.resolve() / Path(f"resources/expected_{cat}s")
@@ -50,7 +51,7 @@ for year in range(2001,2026):
         identify_vertical_captions(df,image)
 
     
-    test_df = df[df[cat] == 1]
+    test_df = df[df.category == cat]
 
     if write:
         out_file = out_dir / f"{subject}_{level}_{paper}_{year}.txt"
