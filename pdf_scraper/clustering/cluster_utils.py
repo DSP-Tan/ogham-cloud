@@ -8,6 +8,8 @@ from sklearn.metrics       import pairwise_distances
 from sklearn.cluster       import DBSCAN
 
 from pdf_scraper.line_utils import get_category_boxes
+from pdf_scraper.line_utils import get_df_bbox
+from pdf_scraper.general_utils import df_bbox_dist
 
 def print_clusters(clusts,X_cols, k):
     print( pd.DataFrame(clusts,columns=X_cols,index=["clust0","clust1"]).head(k) )
@@ -235,7 +237,7 @@ def find_y0_dL(df: pd.DataFrame, cat: str = "" ) -> float:
     return dL
 
 
-def get_vert_neigh_dist(row, dff, dir):
+def get_vert_neigh_dist(row, page_df, dir):
     """
     This function returns the distance to the next line , in the direction dirr.
 
@@ -246,18 +248,22 @@ def get_vert_neigh_dist(row, dff, dir):
     not look for the next line in a parallel column of text.
 
     Examples: 
-    dLs = dff.apply(lambda row: get_vert_neigh_dist(row, dff, ['y0','y1']),axis=1)
+    dLs  = dff.apply(lambda row: get_vert_neigh_dist(row, dff, ['y0','y1']),axis=1)
     dy0s = dff.apply(lambda row: get_vert_neigh_dist(row, dff, ['y0']),axis=1)
     """
-    same_side  = (row.x0 < middle )*(dff.x0 < middle) == True
-    below      = (dff.y0 > row.y0)
+    if np.unique(page_df.page).shape[0] >1:
+        raise RuntimeError("get_vert_neigh_dist is meant to take only one page at a time.")
+    page_x0, page_y0, page_x1, page_y1 = get_df_bbox(page_df)
+    middle = (page_x0 + page_x1)/2
+        
+    same_side  = (row.x0 < middle )*(page_df.x0 < middle) == True
+    below      = (page_df.y0 > row.y0)
     mask       = same_side & below
-    other_rows = dff.loc[mask , dir ]
+    other_rows = page_df.loc[mask , dir ]
     metric     = "euclidean" if len(dir)==1 else df_bbox_dist
 
     if len(other_rows)==0:
         return np.nan
-
     
     return pairwise_distances(row[dir].values.reshape(1,-1) , Y=other_rows.values,  metric=metric).min()
 
