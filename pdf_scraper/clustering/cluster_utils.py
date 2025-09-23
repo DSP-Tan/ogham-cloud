@@ -256,7 +256,7 @@ def get_vert_neigh_dist(row, page_df, dir):
     page_x0, page_y0, page_x1, page_y1 = get_df_bbox(page_df)
     middle = (page_x0 + page_x1)/2
         
-    same_side  = (row.x0 < middle )*(page_df.x0 < middle) == True
+    same_side  = (row.x0 < middle ) == (page_df.x0 < middle) 
     below      = (page_df.y0 > row.y0)
     mask       = same_side & below
     other_rows = page_df.loc[mask , dir ]
@@ -265,7 +265,10 @@ def get_vert_neigh_dist(row, page_df, dir):
     if len(other_rows)==0:
         return np.nan
     
-    return pairwise_distances(row[dir].values.reshape(1,-1) , Y=other_rows.values,  metric=metric).min()
+    distances = pairwise_distances(row[dir].values.reshape(1,-1) , Y=other_rows.values,  metric=metric)
+    distances = distances[distances !=0 ]
+    
+    return distances.min()
 
 def split_cluster(df: pd.DataFrame, i_clust: int,  metric, eps, dir, verbose=False):
     if verbose: print(f"scanning cluster {i_clust}")
