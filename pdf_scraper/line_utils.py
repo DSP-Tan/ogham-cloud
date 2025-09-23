@@ -188,6 +188,16 @@ def get_df_bbox(line_df):
     return tuple( float(i) for i in [x0,y0,x1,y1] )
 
 def get_category_boxes(df, cat) -> list[fitz.Rect]:
+    """
+    This function returns a bounding box for all lines in the data frame which occupy a given category. This
+    can then be used to visiualise agains the pdf to check for correctness.
+    
+    NOTE: The way in which categories are now set in the df in the "category" column is no
+    longer consistent with this funciton.
+    
+    However, you can just one_hot_encode the category column and then you can apply this function to those categories.
+    It still works on cluster categories which have their own columns as expected by the function.
+    """
     rectangies = []
     clust_labes = np.unique(df[cat])[1:] if -1 in df[cat] else np.unique(df[cat])
     for i in clust_labes:
