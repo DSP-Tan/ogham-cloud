@@ -10,7 +10,8 @@ from pdf_scraper.line_utils  import get_line_df, get_line_text, get_level_line_c
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
 from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips
 from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions
-from pdf_scraper.general_utils import bbox_horiz_dist, shared_centre
+from pdf_scraper.general_utils import bbox_horiz_dist, shared_centre, df_bbox_dist
+from pdf_scraper.clustering.cluster_utils import hdbscan, get_eps_x, get_eps_y
 
 subject_code = {
     "irish": "001",
@@ -281,6 +282,21 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
 
     return df
 
+def identify_page_clusters(df):
+    if len(df[df.category=="image"])==0:
+        raise RuntimeError("Enrich df with images before identifying clusters.")
+
+    df["cluster"]=0
+
+    for page in range(1,9):
+        page_df = df[df.page==page].copy()
+        eps_x = get_eps_x(page_df, page, 2.0/3.0)
+        eps_y = get_eps_y(page_df, page, 1.15)
+        hdbscan(page_df, 100, eps_x, eps_y, metric=df_bbox_dist)
+        df.loc[page_df.index, "cluster"] = page_df.cluster
+
+    return df
+
 def identify_vertical_captions(df,image):
     """
     This function will identify any captions to image contained in df. 
@@ -297,6 +313,45 @@ def identify_vertical_captions(df,image):
     below_bottom     = abs(df.y0 -i_y1)  <= df.h*2.0
     page             = df.page == image["page"]
     mask = page & within_image_frame & centred &  uncategorised &  below_bottom
+
+    df.loc[mask, "category"] = "caption2"
+    return df
+
+def new_vertical_captions(df,images):
+    """
+    This function will identify any captions to image contained in df. 
+    It will look for captions vertically above or below the image.
+    """
+    for page in range(2,9):
+        page_df = df[df.page==page]
+
+        uncategorised = page_df.category=="uncategorised"
+        if len(page_df[uncategorised])==0:
+            continue
+
+        page_images = [image for image in images if image["page"]==page]
+        page_df = enrich_doc_df_with_images(page_df,page_images)
+        x_scale, y_scale = 2.0/3.0 , 1.15
+        eps_y = get_eps_y(page_df, page, y_scale)
+        eps_x = get_eps_x(page_df, page, x_scale)
+        
+        rectangs, labia = hdbscan(page_df, 100, eps_x, eps_y, df_bbox_dist,False)
+        df.loc[page_df.index, "cluster"] = page_df.cluster
+
+    #print(df.columns)
+    clusters_with_images = np.unique(df[(df.category=="image")].cluster)
+
+    uncategorised     = (df.category=="uncategorised")
+    in_image_cluster  = df.cluster.isin(clusters_with_images)
+    not_image         = (df.category !="image")
+
+    df.loc[in_image_cluster & not_image & uncategorised, "category"] = "caption2"
+
+    return df
+
+
+
+
 
     df.loc[mask, "category"] = "caption2"
     return df
