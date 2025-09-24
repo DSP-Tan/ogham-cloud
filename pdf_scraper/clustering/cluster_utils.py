@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose       import make_column_transformer
 from sklearn.metrics       import pairwise_distances
 from sklearn.cluster       import DBSCAN
+from sklearn.utils._param_validation import InvalidParameterError
 
 from pdf_scraper.line_utils import get_category_boxes
 from pdf_scraper.line_utils import get_df_bbox
@@ -348,7 +349,25 @@ def correct_eps_y_scale(df, page,y_scale):
         return y_scale%1 + 0.5
     return y_scale
 
+def get_eps_y(df, page,y_scale):
+    page_df = df[df.page==page].copy()
+    dL_median = page_df.apply(lambda row: get_vert_neigh_dist(row, page_df, ["y0","y1"]),axis=1 ).median()
+    y_scale = correct_eps_y_scale(page_df, page, y_scale)
+    return dL_median * y_scale
     
+def get_eps_x(df, page,x_scale):
+    page_df = df[df.page==page].copy()
+    middle = (page_df.x0.min() + page_df.x1.max())/2
+    left  = page_df[page_df.x1 < middle +5 ]
+    right = page_df[page_df.x0 > middle -5 ]
+
+    if len(right)==0 or len(left)==0:
+        return 10*x_scale
+    
+    left_right_dist  = pairwise_distances(left[["x0","x1"]], right[["x0","x1"]], metric=df_bbox_dist)
+    mask = (left_right_dist!=0)                 # Exclude overlapping lines
+
+    return x_scale * left_right_dist[mask].min()
 
 
 def split_cluster(df: pd.DataFrame, i_clust: int,  metric, eps, dir, verbose=False):
@@ -358,7 +377,13 @@ def split_cluster(df: pd.DataFrame, i_clust: int,  metric, eps, dir, verbose=Fal
 
     X             = pairwise_distances(clust_df[dir],metric=metric)
     scan          = DBSCAN(eps=eps, min_samples=1,metric="precomputed")
-    labels        = scan.fit_predict(X)
+
+    try:
+        labels        = scan.fit_predict(X)
+    except InvalidParameterError as e:
+        print(e)
+        print(f"\n\nScanning cluster {i_clust} page {np.unique(df.page)[0]} in {dir} with eps: {eps}")
+        raise 
     
     unique_labels = np.unique(labels)
     n_labels = len( unique_labels )
@@ -383,6 +408,8 @@ def hdbscan(df: pd.DataFrame, max_iter: int, eps_x: float, eps_y: float, metric,
     i_dir, n_fail, df["cluster"] = (0, 0, 0)
     N_clusters=1
     rectangies, labia = ([], [])
+    if len(df)<=1:
+        return rectangies, labia
     
     for n_loop in range(max_iter):
         # assign the direction and cluster numbers for this round of scanning
