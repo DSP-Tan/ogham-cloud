@@ -237,9 +237,14 @@ def find_y0_dL(df: pd.DataFrame, cat: str = "" ) -> float:
     return dL
 
 
-def get_vert_neigh_dist(row, page_df, dir):
+def get_vert_neigh_dist(row, df, dir):
     """
-    This function returns the distance to the next line , in the direction dirr.
+    This function returns the distance to the next non-overlapping line, in the direction dirr. 
+    
+    The next line in y0 can still be overlapping if it has a y0 which is greater than previous line, 
+    but y1 of the current line (row) is greater than y0 of the new line.
+
+    If there is no non-overlapping line on the same side below the line specified in row, np.nan is returned.
 
     If dir is just one dimensional, "y0", the y0 difference with next line will be calculated.
     If dir is the two dimensional ["y0","y1"], the end to end next line distance will be calculated.
@@ -251,15 +256,15 @@ def get_vert_neigh_dist(row, page_df, dir):
     dLs  = dff.apply(lambda row: get_vert_neigh_dist(row, dff, ['y0','y1']),axis=1)
     dy0s = dff.apply(lambda row: get_vert_neigh_dist(row, dff, ['y0']),axis=1)
     """
-    if np.unique(page_df.page).shape[0] >1:
-        raise RuntimeError("get_vert_neigh_dist is meant to take only one page at a time.")
-    page_x0, page_y0, page_x1, page_y1 = get_df_bbox(page_df)
+    same_page = (df.page == row.page)
+    page_x0, page_y0, page_x1, page_y1 = get_df_bbox(df[same_page])
     middle = (page_x0 + page_x1)/2
         
-    same_side  = (row.x0 < middle ) == (page_df.x0 < middle) 
-    below      = (page_df.y0 > row.y0)
-    mask       = same_side & below
-    other_rows = page_df.loc[mask , dir ]
+    same_side  = (row.x0 < middle ) == (df.x0 < middle) 
+    below      = (df.y0 > row.y0)
+    mask       = same_side & below & same_page
+    
+    other_rows = df.loc[mask , dir ]
     metric     = "euclidean" if len(dir)==1 else df_bbox_dist
 
     if len(other_rows)==0:
@@ -267,8 +272,84 @@ def get_vert_neigh_dist(row, page_df, dir):
     
     distances = pairwise_distances(row[dir].values.reshape(1,-1) , Y=other_rows.values,  metric=metric)
     distances = distances[distances !=0 ]
-    
+    if len(distances)==0:
+        return np.nan
+
     return distances.min()
+
+def nn_line_distance(df, row):
+    """
+    This returns the next nearest neighbour to a line, using the end-to-end distance metric.
+    
+    It only looks at lines below the current line to find nearest neighbours. If the next line in 
+    y0 overlaps with the current line, the nn_line_distance will be 0; if there is no line beneath 
+    the current line on the same side, np.nan is returned.
+    """
+
+    same_page  = (row.page == df.page)
+    middle     = (df[same_page].x0.min() + df[same_page].x1.max())/2
+    same_side  = (row.x0 < middle ) == (df.x0 < middle) 
+    below      = (df.y0 > row.y0)
+    not_image  = (df.category != "image")
+
+    mask       = same_side & below & not_image
+    other_rows = df.loc[mask ]
+
+    if len(other_rows)==0:
+        return np.nan
+    
+    dir= ["y0","y1"]
+    distances = pairwise_distances(row[dir].values.reshape(1,-1) , Y=other_rows[dir].values,  metric=df_bbox_dist)
+    return distances.min()
+
+def second_nn_line_distance(df, row):
+    """
+    This returns the second next nearest neighbour to a line, using the end-to-end distance metric.
+    
+    It only looks at lines below the current line to find nearest neighbours. If the second next line in 
+    y0 overlaps with the current line, the nn_line_distance will be 0; if there is less than two lines 
+    beneath the current line on the same side, np.nan is returned.
+    """
+
+    same_page  = (row.page == df.page)
+    middle     = (df[same_page].x0.min() + df[same_page].x1.max())/2
+    same_side  = (row.x0 < middle ) == (df.x0 < middle) 
+    below      = (df.y0 > row.y0)
+    not_image  = (df.category != "image")
+
+    mask       = same_side & below & not_image & same_page
+    other_rows = df.loc[mask]
+
+    if len(other_rows)<=1:
+        return np.nan
+    
+    dir = ["y0","y1"]
+    distances = pairwise_distances(row[dir].values.reshape(1,-1) , Y=other_rows[dir].values,  metric=df_bbox_dist)
+
+    nn_2 = np.sort(distances[0])[1]
+
+    return nn_2
+
+
+def correct_eps_y_scale(df, page,y_scale):
+    """
+    This function determines an appropriate scale for the eps_y obtained from nearest neighbour 
+    distances for use in dbscan.
+    
+    Some documents have lines such that subsequent lines overlap with each other, and therefore the
+    first non-overlapping line is actually the second neighbour. In this case an appropriate scale is
+    1/2 as we have gone ahead two distances.
+    """
+    page_df = df[df.page==page].copy()
+
+    nn_dist  = page_df.apply(lambda row: nn_line_distance(page_df, row), axis=1)
+
+    if nn_dist.median() == 0:
+        return y_scale%1 + 0.5
+    return y_scale
+
+    
+
 
 def split_cluster(df: pd.DataFrame, i_clust: int,  metric, eps, dir, verbose=False):
     if verbose: print(f"scanning cluster {i_clust}")
