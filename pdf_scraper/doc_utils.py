@@ -343,7 +343,7 @@ def new_vertical_captions(df,images):
         clusters_with_images = np.unique(page_df[is_image].cluster)
         in_image_cluster     = page_df.cluster.isin(clusters_with_images)
         uncategorised        = page_df.category=="uncategorised"
-        mask                 = uncategorised & in_image_cluster 
+        mask                 = uncategorised & in_image_cluster & ~is_image
         
         page_df.loc[mask, "category"] = "caption2"
 
