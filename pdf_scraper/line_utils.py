@@ -161,7 +161,7 @@ def get_level_line_counts(df, overlap_factor):
 
 # For the tests you can just strip the golden state before testing against it.
 def clean_line_df(df):
-    buff_mask = is_buffered_line(df, 6)
+    buff_mask = is_buffered_line(df, 1)
     df.loc[buff_mask, ["x0", "x1", "text"]] = df.loc[buff_mask].apply(re_box_line, axis=1)
     return df
 
@@ -225,28 +225,37 @@ def is_buffered_line(df: pd.DataFrame, threshold: int = 3) -> pd.Series:
 
 
 FONT_MAP = {
-    'TimesNewRomanPSMT': 'Times-Roman',
-    'TimesNewRomanPS'  : 'Times-Roman',
-    'TimesNewRoman'    : 'Times-Roman',
-    'TimesNewRomanPS-BoldMT': 'Times-Bold',
-    'TimesNewRomanPS-BoldItal' : 'Times-BoldItalic',
-    'TimesNewRoman,Bold': 'Times-Bold',
-    'TimesNewRomanPS-Bold': 'Times-Bold',
-    'TimesNewRomanPS-ItalicMT': 'Times-Italic',
+    'TimesNewRomanPSMT'           : 'Times-Roman',
+    'TimesNewRomanPS'             : 'Times-Roman',
+    'TimesNewRoman'               : 'Times-Roman',
+    'TimesNewRomanPS-BoldMT'      : 'Times-Bold',
+    'TimesNewRomanPS-BoldItal'    : 'Times-BoldItalic',
+    'TimesNewRoman,Bold'          : 'Times-Bold',
+    'TimesNewRomanPS-Bold'        : 'Times-Bold',
+    'TimesNewRomanPS-ItalicMT'    : 'Times-Italic',
+    'TimesNewRoman,BoldItalic'    : 'Times-BoldItalic',
     'TimesNewRomanPS-BoldItalicMT': 'Times-BoldItalic',
-    'ArialMT': 'Helvetica',
+    'ArialMT'                     : 'Helvetica',
     'Arial-BoldMT': 'Helvetica-Bold',
+    'Arial,Bold': 'Helvetica-Bold',
     'CourierNewPSMT': 'Courier',
     'Cambria': 'Times-Roman',
     'Cambria-Bold': 'Times-Bold',
+    'Cambria,Bold': 'Times-Bold',
     'Cambria-Italic': 'Times-Italic',
     'Cambria-BoldItalic': 'Times-BoldItalic',
     'Calibri': 'Helvetica',
+    'Bahnschrift': 'Helvetica',
     'Calibri-Bold': 'Helvetica-Bold',
     'Calibri,Bold': 'Helvetica-Bold',
     'Calibri-Italic': 'Helvetica-Oblique',
+    'Calibri,Italic': 'Helvetica-Oblique',
     'Calibri-BoldItalic': 'Helvetica-BoldOblique',
+    'Calibri,BoldItalic': 'Helvetica-BoldOblique'
     }
+# add all the fonts actually recognised in fitz to the dictionary.
+for name in fitz.Base14_fontdict.values():
+    FONT_MAP[name] = name
 
 def re_box_line(row: pd.Series) -> pd.Series:
     """
