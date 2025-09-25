@@ -349,6 +349,10 @@ def new_vertical_captions(df,images):
 
         change = page_df.loc[mask]
         df.loc[change.index,"category"] = change.category
+    
+    # Captions will all be on only one side of the image, not on many different sides.
+    # If there is lots of text in a box, and it is not all on the same side of the image, it is 
+    # not a caption.
 
     return df
 
