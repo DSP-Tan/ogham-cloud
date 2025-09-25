@@ -177,13 +177,14 @@ def identify_footers(doc_df):
     eng_regex   = r'english[ \xa0]–[ \xa0]higher[ \xa0]level[ \xa0]–[ \xa0]paper[ \xa0]1'
     num_regex   = r'^(?:1[0-2]|[1-9])$'
 
+    uncategorised = doc_df.category=="uncategorised"
     pattern1 = doc_df.text.str.lower().str.contains(n_page_regex, regex=True)
     pattern2 = doc_df.text.str.lower().str.contains(lc_regex, regex=True)
     pattern3 = doc_df.text.str.lower().str.contains(eng_regex, regex=True)
     pattern4 = doc_df.text.str.strip().str.contains(num_regex, regex=True)
     bottom   = doc_df['rank'] <= 3
 
-    mask = bottom & (pattern1 | pattern2 | pattern3 | pattern4 )
+    mask = uncategorised & bottom & (pattern1 | pattern2 | pattern3 | pattern4 )
 
     doc_df.loc[mask, "category"] = "footer"
     doc_df.drop(columns=["rank"],inplace=True)
@@ -282,7 +283,13 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
 
     return df
 
-def identify_page_clusters(df):
+def identify_page_clusters(df, x_scale, y_scale):
+    """
+    This function will perform a hierarchical dbscan using end-to-end line distances on 
+    all pages of the document. The clusteres to which a given line or image belong will
+    be stored in a column "cluster" which will be added to the input dataframe if it does not
+    already exist; if it exists it will be overwritten with the newly calculated clusters.
+    """
     if len(df[df.category=="image"])==0:
         raise RuntimeError("Enrich df with images before identifying clusters.")
 
@@ -290,8 +297,8 @@ def identify_page_clusters(df):
 
     for page in range(1,9):
         page_df = df[df.page==page].copy()
-        eps_x = get_eps_x(page_df, page, 2.0/3.0)
-        eps_y = get_eps_y(page_df, page, 1.15)
+        eps_x = get_eps_x(page_df, page, x_scale)
+        eps_y = get_eps_y(page_df, page, y_scale)
         hdbscan(page_df, 100, eps_x, eps_y, metric=df_bbox_dist)
         df.loc[page_df.index, "cluster"] = page_df.cluster
 
@@ -302,6 +309,8 @@ def identify_vertical_captions(df,image):
     This function will identify any captions to image contained in df. 
     It will look for captions vertically above or below the image.
     """
+    if np.unique(df.clusters).shape[0]<1:
+        raise RuntimeError("Identify text and image clusters before searching for captions.")
     i_x0, i_y0, i_x1, i_y1 = image["bbox"]
     img_centre = (i_x0 + i_x1)/2
     within_image_frame = (df.x0 >= i_x0) & (df.x1 <= i_x1)
@@ -322,73 +331,63 @@ def new_vertical_captions(df,images):
     This function will identify any captions to image contained in df. 
     It will look for captions vertically above or below the image.
     """
+    if np.unique(df.cluster).shape[0]<1:
+        raise RuntimeError("Identify text and image clusters before searching for captions.")
+    if len(df[df.category=="image"])==0:
+        raise RuntimeError("Enrich dataframe with images before searching for vertical captions..")
+
     for page in range(2,9):
         page_df = df[df.page==page]
 
-        uncategorised = page_df.category=="uncategorised"
-        if len(page_df[uncategorised])==0:
-            continue
-
-        page_images = [image for image in images if image["page"]==page]
-        page_df = enrich_doc_df_with_images(page_df,page_images)
-        x_scale, y_scale = 2.0/3.0 , 1.15
-        eps_y = get_eps_y(page_df, page, y_scale)
-        eps_x = get_eps_x(page_df, page, x_scale)
+        is_image             = page_df.category=="image"
+        clusters_with_images = np.unique(page_df[is_image].cluster)
+        in_image_cluster     = page_df.cluster.isin(clusters_with_images)
+        uncategorised        = page_df.category=="uncategorised"
+        mask                 = uncategorised & in_image_cluster 
         
-        rectangs, labia = hdbscan(page_df, 100, eps_x, eps_y, df_bbox_dist,False)
-        df.loc[page_df.index, "cluster"] = page_df.cluster
+        page_df.loc[mask, "category"] = "caption2"
 
-    #print(df.columns)
-    clusters_with_images = np.unique(df[(df.category=="image")].cluster)
+        change = page_df.loc[mask]
+        df.loc[change.index,"category"] = change.category
 
-    uncategorised     = (df.category=="uncategorised")
-    in_image_cluster  = df.cluster.isin(clusters_with_images)
-    not_image         = (df.category !="image")
-
-    df.loc[in_image_cluster & not_image & uncategorised, "category"] = "caption2"
-
-    return df
-
-
-
-
-
-    df.loc[mask, "category"] = "caption2"
     return df
 
 
 def identify_subtitles(doc_df,doc_width):
     if (doc_df.category=="section").sum() == 0:
-        raise runtimeerror("assign section headings first")
+        raise RuntimeError("assign section headings first")
     if (doc_df.category=="title").sum() == 0:
-        raise runtimeerror("assign text headers first")
+        raise RuntimeError("assign text headers first")
 
-    doc_df["counts"]   = get_level_line_counts(doc_df, 0.9)
+    doc_df["counts"]  = get_level_line_counts(doc_df, 0.9)
+    df = doc_df[doc_df.category !="image"].copy()
 
-    single_line   = (doc_df.counts == 0)
-    bold_font     = doc_df.mode_font.str.contains("Bold")
-    starts_left   = doc_df.x0 < doc_width/2
-    pages         = (doc_df.page > 1) & (doc_df.page <9)
-    title_on_page = (doc_df.category=='title').groupby(doc_df.page).transform('sum') >0
-    uncategorised = doc_df.category == "uncategorised"
-    after_headers = doc_df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=6
+    single_line   = (df.counts == 0)
+    bold_font     = df.mode_font.str.contains("Bold")
+    starts_left   = df.x0 < doc_width/2
+    pages         = (df.page > 1) & (df.page <9)
+    title_on_page = (df.category=='title').groupby(df.page).transform('sum') >0
+    uncategorised = df.category == "uncategorised"
+    after_headers = df[uncategorised].groupby('page')['y0'].rank(method='first', ascending=True) <=6
 
     mask = pages & uncategorised & after_headers & title_on_page 
     mask2 = ( bold_font.astype(int) + starts_left.astype(int) + single_line.astype(int) ) >=2
-    doc_df.loc[mask & mask2 , "category"] = "subtitle"
-    
-    doc_df = remove_non_contiguous_lines(doc_df, "subtitle")
+    df.loc[mask & mask2 , "category"] = "subtitle"
+    df = remove_non_contiguous_lines(df, "subtitle")
+
+    change = df.loc[mask & mask2 ]
+    doc_df.loc[change.index,"category"] = change.category
 
     return doc_df
 
 
 def identify_subsubtitles(doc_df,doc_width):
     if (doc_df.category=="section").sum() == 0:
-        raise runtimeerror("assign section headings first")
+        raise RuntimeError("assign section headings first")
     if (doc_df.category=="title").sum() == 0:
-        raise runtimeerror("assign text titles first")
+        raise RuntimeError("assign text titles first")
     if (doc_df.category=="subtitle").sum() == 0:
-        raise runtimeerror("assign text subtitles first")
+        raise RuntimeError("assign text subtitles first")
 
     middle        = doc_width/2
 
@@ -432,3 +431,12 @@ def get_line_overlaps(df):
     
     df["counts"] = counts
     return df
+
+    
+def get_full_doc_e2e_dL(doc_df):
+    dL_e2e =(
+        doc_df.groupby("page",group_keys=False)[["page","x0","x1","y0","y1"]].apply(
+        lambda g: g.apply(
+            lambda row: get_vert_neigh_dist(row, g, dir), axis=1)) 
+        )
+    return dL_e2e
