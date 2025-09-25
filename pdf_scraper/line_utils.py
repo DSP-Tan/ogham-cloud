@@ -151,6 +151,15 @@ def get_level_line_counts(df, overlap_factor):
 
     return counts_series
 
+# To Do:
+# You need to change the threshold there to 1. Even one space at the start or end of a line can 
+# mess up spacing when performing clustering. 
+
+# This means you will have alot more lines to rebox, and therefore the FONT_MAP dictionary, as well
+# as the tests (which are testing against a golden state that was created with unstripped lines), will need
+# to be rewritten.
+
+# For the tests you can just strip the golden state before testing against it.
 def clean_line_df(df):
     buff_mask = is_buffered_line(df, 6)
     df.loc[buff_mask, ["x0", "x1", "text"]] = df.loc[buff_mask].apply(re_box_line, axis=1)
