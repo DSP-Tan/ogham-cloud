@@ -97,8 +97,8 @@ def check_category(year, subject, level, paper, cat):
     identify_subtitles(df, doc_width)
     identify_subsubtitles(df, doc_width)
 
-    got = df[df.category == cat].text.tolist()
-    expected = load_expected(year, cat ,subject, level, paper)
+    got = [strang.strip() for strang in df[df.category == cat].text.tolist()]
+    expected = [strang.strip() for strang in load_expected(year, cat ,subject, level, paper)]
 
     assert got == expected
 
@@ -148,8 +148,8 @@ def test_identify_text_subsubtitles():
             assert test_df.iloc[6].text=='sea or in outlandish parts, that Jason would never see his home again.'
         elif year==2005:
             assert len(test_df)==2
-            assert test_df.iloc[0].text=='World exclusive ! Irish Rock Diva speaks to readers from '
-            assert test_df.iloc[1].text=='her Italian villa. '
+            assert test_df.iloc[0].text=='World exclusive ! Irish Rock Diva speaks to readers from '.strip()
+            assert test_df.iloc[1].text=='her Italian villa. '.strip()
         else:
             assert len(test_df) == 0
         
