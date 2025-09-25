@@ -353,7 +353,9 @@ def get_eps_y(df, page,y_scale):
     page_df = df[df.page==page].copy()
     dL_median = page_df.apply(lambda row: get_vert_neigh_dist(row, page_df, ["y0","y1"]),axis=1 ).median()
     y_scale = correct_eps_y_scale(page_df, page, y_scale)
-    return dL_median * y_scale
+
+    eps_y = (dL_median * y_scale) if not np.isnan(dL_median) else page_df.h.median() * y_scale
+    return eps_y
     
 def get_eps_x(df, page,x_scale):
     page_df = df[df.page==page].copy()
