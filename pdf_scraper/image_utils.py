@@ -157,7 +157,7 @@ def get_bboxed_page_image(doc,  page_number: int, rects: list[fitz.Rect],  color
         page.draw_rect(rect, color=color, width=3)
         if len(labels) >0:
             label_text = str(labels[i])
-            pos = fitz.Point(rect.x0, rect.y0 - 2)  # adjust -2 for spacing
+            pos = fitz.Point((rect.x0+rect.x1)/2.0, rect.y0 - 2)  # adjust -2 for spacing
             page.insert_text(pos, label_text, fontsize=8, color=(1,0,0))
 
     pix = page.get_pixmap(matrix=fitz.Matrix(1, 1))  # scale=2 for higher resolution
