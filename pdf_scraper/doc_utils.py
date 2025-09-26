@@ -339,7 +339,7 @@ def get_lines_in_image_clusters(df) -> list[int]:
     if np.unique(df.cluster).shape[0]<1:
         raise RuntimeError("Identify text and image clusters before searching for captions.")
     if len(df[df.category=="image"])==0:
-        raise RuntimeError("Enrich dataframe with images before searching for vertical captions..")
+        raise RuntimeError("Enrich dataframe with images before searching for vertical captions.")
 
     indices = []
     for page in range(2,9):
