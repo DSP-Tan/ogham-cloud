@@ -7,6 +7,12 @@ import fitz
 
 import matplotlib.pyplot as plt
 
+
+# To Do:
+# We need to also join just fat images which are broken into halves or 
+# thirds. So these are not narrow strips, but they will still annoyingly
+# break up the image, which we do not want.
+
 def is_point_image(img, threshold=5):
     x0, y0, x1, y1 = img["bbox"]
     return (x1 - x0) < threshold and (y1 - y0) < threshold
