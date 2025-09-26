@@ -326,6 +326,35 @@ def identify_vertical_captions(df,image):
     df.loc[mask, "category"] = "caption2"
     return df
 
+def get_lines_in_image_clusters(df) -> list[int]:
+    """
+    This finds any text lines which are contained in the same dbscan clustering as 
+    an image. The clustering must be done before, and the dataframe must contain images.
+
+    This list of rows can later be viewed using:
+    
+    indices = get_lines_in_image_clusters(df)
+    mask    = df.index.isin( indices )
+    """
+    if np.unique(df.cluster).shape[0]<1:
+        raise RuntimeError("Identify text and image clusters before searching for captions.")
+    if len(df[df.category=="image"])==0:
+        raise RuntimeError("Enrich dataframe with images before searching for vertical captions..")
+
+    indices = []
+    for page in range(2,9):
+        page_df = df[df.page==page]
+
+        is_image             = page_df.category=="image"
+        clusters_with_images = np.unique(page_df[is_image].cluster)
+        in_image_cluster     = page_df.cluster.isin(clusters_with_images)
+        uncategorised        = page_df.category=="uncategorised"
+        mask                 = uncategorised & in_image_cluster & ~is_image
+
+        indices.extend( page_df[mask].index.to_list() ) 
+
+    return indices
+
 def new_vertical_captions(df,images):
     """
     This function will identify any captions to image contained in df. 
