@@ -373,6 +373,15 @@ def get_eps_x(df, page,x_scale):
 
 
 def split_cluster(df: pd.DataFrame, i_clust: int,  metric, eps, dir, verbose=False):
+    """
+    This function will split a cluster in dataframe df by performing a dbscan in direction dir with 
+    parameter eps if it can.
+
+    If a split occurs the original cluster id will be kept for one cluster, and new cluster ids, taking into
+    account all clusters currently present in df, will be assigned to the new clusters.
+
+    The function modifies df in place, assigning the new cluster labels to df.cluster.
+    """
     if verbose: print(f"scanning cluster {i_clust}")
     last_id  = df.cluster.max()
     clust_df = df[df.cluster==i_clust].copy()
