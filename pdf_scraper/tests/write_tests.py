@@ -11,6 +11,7 @@ from pdf_scraper.doc_utils   import identify_footers, identify_instructions, ide
 from pdf_scraper.doc_utils   import get_images,filter_images, assign_in_image_captions, identify_vertical_captions
 from pdf_scraper.draw_utils  import get_pink_boundary, get_fill_df, in_the_pink
 from pdf_scraper.line_utils  import get_line_df, print_line_table, get_all_lines, line_is_empty, clean_line_df
+from pdf_scraper.doc_utils   import new_vertical_captions, identify_page_clusters, enrich_doc_df_with_images
 
 
 paper=1
@@ -19,8 +20,7 @@ subject="english"
 
 
 test_categories = ["dual_col", "caption1","caption2", "instruction", "footer", "section","title","subtitle","subsubtitle"]
-#cat = "caption2"
-cat = "subsubtitle"
+cat = "temp"
 write = False
 
 out_dir = Path(__file__).parent.resolve() / Path(f"resources/expected_{cat}s")
@@ -38,17 +38,18 @@ for year in range(2001,2026):
     assign_in_image_captions(df,images)
     
     df = clean_line_df(df)
-    
+    df = enrich_doc_df_with_images(df,images)
+    identify_page_clusters(df,2.0/3.0, 1.15)
+
     identify_footers(df)
     identify_instructions(df)
     identify_section_headers(df)
     identify_text_headers(df, doc_width)
     identify_subtitles(df, doc_width)
     identify_subsubtitles(df, doc_width)
-    for image in images: 
-        if image["page"] <2 or image["page"] >8:
-            continue
-        identify_vertical_captions(df,image)
+
+
+    new_vertical_captions(df, images)
 
     
     test_df = df[df.category == cat]
