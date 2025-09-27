@@ -115,6 +115,9 @@ def get_in_image_captions(image: dict, doc_df: pd.DataFrame, indices: pd.Index) 
     return caption
 
 def show_image(image):
+    """
+    This function is for executing in a notebook to view an image based on the image block dictionary.
+    """
     img_bytes = image["image"]
     img_stream = BytesIO(img_bytes)
     img = Image.open(img_stream)
@@ -166,3 +169,24 @@ def get_bboxed_page_image(doc,  page_number: int, rects: list[fitz.Rect],  color
     out_doc.close()
 
     return img
+
+
+def filter_low_res_doubles(images) -> list[dict]:
+    """
+    There are sometimes on a given pdf page, two versions of a given image, one superposed exactly
+    on the other. The one over the other is normally of higher resolution.
+
+    Given that in any case, two images which occupy exactly the same space will not both be visible,
+    we can safely filter out one.
+
+    This function will search through a list of images, find such high-low-resolution doubling, and drop
+    the lower resolution copy.
+    """
+    images_to_drop = []
+    for i in range(len(images)):
+        for j in range(i+1,len(images)):
+            im1, im2  = images[i], images[j]
+            if im2["bbox"]==im1["bbox"]:
+                images_to_drop.append( im1["number"] if im1["size"] > im2["size"] else im2["number"])
+    filtered_images = [im for im in images if im["number"] not in images_to_drop]
+    return filtered_images
