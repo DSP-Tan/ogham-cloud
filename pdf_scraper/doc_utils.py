@@ -8,7 +8,7 @@ from sklearn.cluster import DBSCAN
 from pdf_scraper.block_utils import clean_blocks
 from pdf_scraper.line_utils  import get_line_df, get_line_text, get_level_line_counts, get_df_bbox
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
-from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips
+from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips, filter_low_res_doubles
 from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions
 from pdf_scraper.general_utils import bbox_horiz_dist, shared_centre, df_bbox_dist
 from pdf_scraper.clustering.cluster_utils import hdbscan, get_eps_x, get_eps_y
@@ -117,6 +117,7 @@ def filter_images(images):
         images=filter_point_images(images)
     if len(images) > 100:
         images = reconstitute_strips(images)
+    images = filter_low_res_doubles(images)
     return images
 
 def assign_in_image_captions(doc_df: pd.DataFrame, images: list[dict]) -> list[dict]:
@@ -364,20 +365,26 @@ def new_vertical_captions(df,images):
         raise RuntimeError("Identify text and image clusters before searching for captions.")
     if len(df[df.category=="image"])==0:
         raise RuntimeError("Enrich dataframe with images before searching for vertical captions..")
+    
+    indices = get_lines_in_image_clusters(df)
+    mask    = df.index.isin(indices)
+    df.loc[mask,"category"] = "temp"
 
     for page in range(2,9):
-        page_df = df[df.page==page]
+        page_df = df[df.page==page].copy()
+        line_image_cluster = page_df.index.isin(indices)
+        page_df = page_df[line_image_cluster]
 
-        is_image             = page_df.category=="image"
-        clusters_with_images = np.unique(page_df[is_image].cluster)
-        in_image_cluster     = page_df.cluster.isin(clusters_with_images)
-        uncategorised        = page_df.category=="uncategorised"
-        mask                 = uncategorised & in_image_cluster & ~is_image
-        
-        page_df.loc[mask, "category"] = "caption2"
+        for i_clust in np.unique(page_df.cluster):
+            clust_df   = page_df[page_df.cluster==i_clust]
+            image_df   = clust_df[clust_df.category=="image"]
 
-        change = page_df.loc[mask]
-        df.loc[change.index,"category"] = change.category
+            for i, image in image_df.itterrows():
+                i_x0 = image.x0
+                i_x1 = image.x1
+
+
+
     
     # Captions will all be on only one side of the image, not on many different sides.
     # If there is lots of text in a box, and it is not all on the same side of the image, it is 
