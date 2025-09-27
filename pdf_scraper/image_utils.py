@@ -26,7 +26,6 @@ def filter_point_images(images):
 def filter_horizontal_strips(images):
     return [img for img in images if not is_horizontal_strip(img)]
 
-
 def get_stripped_images(images):
     strips = [img for img in images if is_horizontal_strip(img)]
     x0s = np.unique([strip["bbox"][0] for strip in strips])
@@ -86,6 +85,27 @@ def reconstitute_strips(image_blocks: dict):
     filtered_blocks.append(stitched)
     filtered_blocks.sort(key=lambda x: (x["page"], x["bbox"][1]))
     return filtered_blocks
+
+def filter_low_res_doubles(images) -> list[dict]:
+    """
+    There are sometimes on a given pdf page, two versions of a given image, one superposed exactly
+    on the other. The one over the other is normally of higher resolution.
+
+    Given that in any case, two images which occupy exactly the same space will not both be visible,
+    we can safely filter out one.
+
+    This function will search through a list of images, find such high-low-resolution doubling, and drop
+    the lower resolution copy.
+    """
+    images_to_drop = []
+    for i in range(len(images)):
+        for j in range(i+1,len(images)):
+            im1, im2  = images[i], images[j]
+            if im2["bbox"]==im1["bbox"]:
+                images_to_drop.append( im1["number"] if im1["size"] > im2["size"] else im2["number"])
+    filtered_images = [im for im in images if im["number"] not in images_to_drop]
+    return filtered_images
+
 
 def get_in_image_lines(image: dict,doc_df: pd.DataFrame) -> pd.Index:
     rect = fitz.Rect(*image["bbox"])
@@ -170,23 +190,3 @@ def get_bboxed_page_image(doc,  page_number: int, rects: list[fitz.Rect],  color
 
     return img
 
-
-def filter_low_res_doubles(images) -> list[dict]:
-    """
-    There are sometimes on a given pdf page, two versions of a given image, one superposed exactly
-    on the other. The one over the other is normally of higher resolution.
-
-    Given that in any case, two images which occupy exactly the same space will not both be visible,
-    we can safely filter out one.
-
-    This function will search through a list of images, find such high-low-resolution doubling, and drop
-    the lower resolution copy.
-    """
-    images_to_drop = []
-    for i in range(len(images)):
-        for j in range(i+1,len(images)):
-            im1, im2  = images[i], images[j]
-            if im2["bbox"]==im1["bbox"]:
-                images_to_drop.append( im1["number"] if im1["size"] > im2["size"] else im2["number"])
-    filtered_images = [im for im in images if im["number"] not in images_to_drop]
-    return filtered_images
