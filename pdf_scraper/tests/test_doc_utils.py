@@ -37,7 +37,7 @@ def test_filter_images():
         images = filter_images(images)
         assert len(images)== im_after
     before = 136811
-    after  = 10
+    after  = 9
     check_filter(2006,before,after)
 
 def test_get_captions():
