@@ -13,6 +13,29 @@ import matplotlib.pyplot as plt
 # thirds. So these are not narrow strips, but they will still annoyingly
 # break up the image, which we do not want.
 
+def sort_images(images: list[dict]) -> list[dict]:
+    """
+    Sort images by page and y0.
+    """
+    return sorted(images, key=lambda img: (img["page"], img["bbox"][1]))
+
+def assign_unique_image_number(images: list[dict]) -> list[dict]:
+    """
+    The "number" key of the image dictionary provided by pymupdf does not have unique numbers.
+    Here we assign a unique number according to the order of the list.
+    """
+    for i, img in enumerate(images, start=1):
+        img["number"] = i
+    return images
+
+def sort_and_rename_images(images: list[dict]) -> list[dict]:
+    sorted_ims = sorted(images, key=lambda img: (img["page"], img["bbox"][1]))
+    for i, img in enumerate(sorted_ims, start=1):
+        img["number"] = i
+    return images
+
+
+
 def is_point_image(img, threshold=5):
     x0, y0, x1, y1 = img["bbox"]
     return (x1 - x0) < threshold and (y1 - y0) < threshold
@@ -25,6 +48,10 @@ def filter_point_images(images):
 
 def filter_horizontal_strips(images):
     return [img for img in images if not is_horizontal_strip(img)]
+
+# Note because these images divided into strips were discovered before images divided into
+# larger blocks, the code to deal with each was implemented separately.
+# A refactoring which merges these could be useful.
 
 def get_stripped_images(images):
     strips = [img for img in images if is_horizontal_strip(img)]
@@ -41,7 +68,10 @@ def stitch_strips(image_blocks: list[dict]) -> dict:
     Stitch a list of horizontal image strips (already sorted top-to-bottom) into a single image.
     Return a dictionary mimicking a fitz text block.
     """
+    # check if strips or contiguous:
     strip_blocks = [strip for strip in image_blocks if is_horizontal_strip(strip)]
+    if not strip_blocks:
+        strip_blocks = identify_contiguous_images(image_blocks)[0]
     if not strip_blocks:
         return image_blocks
     images = [Image.open(io.BytesIO(block["image"])) for block in strip_blocks]
@@ -83,8 +113,77 @@ def reconstitute_strips(image_blocks: dict):
     stitched = stitch_strips(strips)
     filtered_blocks = [img for img in image_blocks if not is_horizontal_strip(img)]
     filtered_blocks.append(stitched)
-    filtered_blocks.sort(key=lambda x: (x["page"], x["bbox"][1]))
+    #filtered_blocks.sort(key=lambda x: (x["page"], x["bbox"][1]))
+    sort_and_rename_images(filtered_blocks)
     return filtered_blocks
+
+def find_contiguous_image_pairs(images, tol) -> list[list[dict]]:
+    contiguous_image_pairs = []
+    for i in range(len(images)):
+        for j in range(i+1,len(images)):
+            im_a, im_b  = images[i], images[j]
+            x0_a, y0_a, x1_a, y1_a = im_a["bbox"]
+            x0_b, y0_b, x1_b, y1_b = im_b["bbox"]
+    
+            same_page = im_a["page"] == im_b["page"]
+            same_x    = (x0_a==x0_b and x1_a ==x1_b)
+    
+            a_bellow = (y1_a <= y0_b+tol and y1_a >= y0_b-tol)
+            a_on_top = (y1_b <= y0_a+tol and y1_b >= y0_a-tol)
+            top_bottom_touch = a_bellow or a_on_top
+    
+            if same_page and same_x and top_bottom_touch:
+                contiguous_image_pairs.append([im_a,im_b] )
+    return contiguous_image_pairs
+
+def merge_contiguous_pair_lists(contiguous_image_pairs):
+    """
+    Merge contiguous image pairs (like [1,2], [2,3]) into full groups ([1,2,3]).
+    Keeps groups separate by page.
+    """
+    merged = []
+
+    images = [img for im_pair in contiguous_image_pairs for img in im_pair] 
+    pair_numbers = [[a["number"],b["number"]] for a, b in contiguous_image_pairs]
+    
+    for pair in pair_numbers:
+        added = False
+        for group in merged:
+            page_pair  = next(im["page"] for im in images if im["number"]==pair[0])
+            page_group = next(im["page"] for im in images if im["number"] in group)
+            if page_group != page_pair:
+                continue
+
+            if any(x in group for x in pair):
+                group.update(pair)
+                added = True
+                break
+        if not added:
+            merged.append(set(pair))  
+    
+    merged_ids = [sorted(list(g)) for g in merged]
+    image_lookup = {im["number"]: im for im in images}
+    contiguous_image_groups = [ [image_lookup[id] for id in id_list] for id_list in merged_ids]
+    contiguous_image_groups = [ sort_images(img_list) for img_list in contiguous_image_groups]
+    
+
+    return contiguous_image_groups
+
+def identify_contiguous_images(images) -> list[list[dict]]:
+    contiguous_image_pairs= find_contiguous_image_pairs(images,0.01)
+    contiguous_image_groups= merge_contiguous_pair_lists(contiguous_image_pairs)
+    return contiguous_image_groups
+
+def reconstitute_split_images(image_blocks: dict):
+    split_images = identify_contiguous_images(image_blocks)
+    split_ids    = [img["number"] for im_group in split_images for img in im_group]
+
+    stitched = [stitch_strips(group) for group in split_images]
+    filtered_blocks = [img for img in image_blocks if img["number"] not in split_ids]
+    filtered_blocks.extend(stitched)
+    sort_and_rename_images(filtered_blocks)
+    return filtered_blocks
+
 
 def filter_low_res_doubles(images) -> list[dict]:
     """
@@ -150,7 +249,7 @@ def show_all_imgs(nrows,ncols, imgs):
             img_bytes = imgs[i]["image"]
             img = Image.open(BytesIO(img_bytes))
             ax.imshow(img)
-            ax.set_title("Page: "+str(imgs[i]['page'])+"; "+imgs[i]["caption"] )
+            ax.set_title("Page: "+str(imgs[i]['page'])+"; "+imgs[i]["caption"] + str(imgs[i]["number"]) )
             ax.axis('off')
         else:
             ax.axis('off')  # Hide empty subplot
