@@ -126,7 +126,7 @@ def find_contiguous_image_pairs(images, tol) -> list[list[dict]]:
             x0_b, y0_b, x1_b, y1_b = im_b["bbox"]
     
             same_page = im_a["page"] == im_b["page"]
-            same_x    = (x0_a==x0_b and x1_a ==x1_b)
+            same_x    = (x0_a<=x0_b+tol and x0_a>=x0_b-tol) and (x1_a<=x1_b+tol and x1_a>=x1_b-tol)
     
             a_bellow = (y1_a <= y0_b+tol and y1_a >= y0_b-tol)
             a_on_top = (y1_b <= y0_a+tol and y1_b >= y0_a-tol)
