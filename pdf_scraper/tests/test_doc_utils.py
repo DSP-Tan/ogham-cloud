@@ -36,9 +36,8 @@ def test_filter_images():
         assert len(images)== im_before
         images = filter_images(images)
         assert len(images)== im_after
-    before = 136811
-    after  = 9
-    check_filter(2006,before,after)
+    check_filter(2006,136811,9)
+    check_filter(2005,18280,12)
 
 def test_get_captions():
     def check_nth_caption(year, expected_caption,n):
