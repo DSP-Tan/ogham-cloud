@@ -290,24 +290,41 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
 
     return df
 
-def identify_page_clusters(df, x_scale, y_scale):
+def identify_page_clusters(df, x_scale, y_scale, text_only=False):
     """
     This function will perform a hierarchical dbscan using end-to-end line distances on 
     all pages of the document. The clusteres to which a given line or image belong will
     be stored in a column "cluster" which will be added to the input dataframe if it does not
     already exist; if it exists it will be overwritten with the newly calculated clusters.
+
+    The flag "text_only", if set to True, will do a clustering only on the text. This can be 
+    a good option as images which overlap both vertically and horizontally with many text blocks
+    can impede a successful partitioning of the page by clustering.
     """
     if len(df[df.category=="image"])==0:
         raise RuntimeError("Enrich df with images before identifying clusters.")
 
     df["cluster"]=0
+    
+    is_image = (df.category=="image")
+    if text_only: df.loc[is_image,"cluster"] = -1
 
     for page in range(1,9):
-        page_df = df[df.page==page].copy()
+        page_df = df[(df.page==page) & ~is_image].copy() if text_only else df[df.page==page].copy()
         eps_x = get_eps_x(page_df, page, x_scale)
         eps_y = get_eps_y(page_df, page, y_scale)
         hdbscan(page_df, 100, eps_x, eps_y, metric=df_bbox_dist)
+
         df.loc[page_df.index, "cluster"] = page_df.cluster
+    
+    # Now name the clusters as i_max_cluster + 1, i_max_cluster +2 ... , etc.
+    if text_only: 
+        for page in range(1,9):
+            page_df = df[df.page==page ]
+            start = page_df.cluster.max() +1
+            n_page_images = (page_df.category=="image").sum()
+            page_df.loc[is_image, "cluster"] = range(start, start + n_page_images)
+            df.loc[page_df.index, "cluster"] = page_df.cluster
 
     return df
 
