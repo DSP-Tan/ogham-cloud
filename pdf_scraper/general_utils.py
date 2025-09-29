@@ -1,13 +1,13 @@
 import numpy as np
 
-def shared_centre(bbox1,bbox2):
+def shared_centre(bbox1,bbox2, tol):
     x0_1, y0_1, x1_1, y1_1 = bbox1
     x0_2, y0_2, x1_2, y1_2 = bbox2
 
     c1 = (x0_1+x1_1)/2
     c2 = (x0_2+x1_2)/2
 
-    return abs(c1-c2) < 10
+    return abs(c1-c2) < tol
 
 def bbox_distance(bbox1, bbox2):
     """
