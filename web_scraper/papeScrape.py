@@ -1,6 +1,6 @@
 import sys, os
 from pathlib import Path
-from selenium.webdriver.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by  import By
 from selenium.webdriver.support.ui import Select
 import undetected_chromedriver as uc
@@ -23,19 +23,44 @@ def find_papers(driver):
         print(f"{paper_desc:50} - {fname:25}")
     return papers
 
+valid_subjects = [
+    'Accounting', 'Agricultural Economics', 'Agricultural Science', 
+    'Ancient Greek', 'Applied Mathematics', 'Arabic', 'Art', 'Biology', 
+    'Bulgarian', 'Business', 'Chemistry', 'Classical Studies', 
+    'Construction Studies', 'Czech', 'Danish', 'Design & Communication Graphics', 
+    'Dutch', 'Economics', 'Engineering', 'English', 'Estonian', 'Finnish', 'French', 
+    'Geography', 'German', 'Hebrew Studies', 'History', 'History (Early Modern)', 
+    'Home Economics S & S', 'Hungarian', 'Irish', 'Italian', 'Japanese', 'Latin', 
+    'Latvian', 'Link Modules', 'Lithuanian', 'Mathematics', 'Modern Greek', 'Music', 
+    'Physics', 'Physics & Chemistry', 'Polish', 'Portuguese', 'Religious Education', 
+    'Romanian', 'Russian', 'Slovakian', 'Spanish', 'Swedish', 'Technology']
 
-if __name__=="__main__":
-    if len(sys.argv) < 4:
+def check_input(argv):
+    if len(argv) < 4:
         print("Provide year range and subject:")
-        print(f"Example use:\npython {sys.argv[0]} 2014 2016 History")
+        print(f"Example use:\npython {argv[0]} 2014 2016 History")
         sys.exit(1)
 
-    #To Do: test for valid year input, and test for valid subject against list of subjects.
-    year1 = sys.argv[1] if sys.argv[1] < sys.argv[2] else sys.argv[2]
-    year2 = sys.argv[2] if sys.argv[2] > sys.argv[1] else sys.argv[1]
-    subject = sys.argv[3]
+    arg1 = int(argv[1])
+    arg2 = int(argv[2])
+    year1 = arg1 if arg1 < arg2 else arg2
+    year2 = arg2 if arg2 > arg1 else arg1
+    subject = argv[3]
 
-    print(f"Downloading papers from {year1} to {year2}")
+    if subject.title() not in valid_subjects:
+        print("Invalid subject chosen. Possible options:")
+        for sub in valid_subjects: print(sub)
+        print(f"Usage:\npython {argv[0]} year1 year2 subject")
+        print(f"Example use:\npython {argv[0]} 2014 2016 History")
+        sys.exit(1)
+    
+    return year1, year2, subject.title()
+    
+
+if __name__=="__main__":
+    year1, year2, subject = check_input(sys.argv)
+
+    print(f"Downloading {subject} papers from {year1} to {year2}")
 
     url      = "https://www.examinations.ie"
     exam     = "Leaving Certificate"
@@ -74,8 +99,6 @@ if __name__=="__main__":
             print(f"{menu}: {selection}")
             dropdown = driver.find_element(By.ID, menu)
             select   = Select(dropdown)
-            for option in select.options:
-                print(option.text)
             try:
                 select.select_by_visible_text(selection) ; sleep(3)
             except NoSuchElementException:
