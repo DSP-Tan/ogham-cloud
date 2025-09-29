@@ -1,5 +1,6 @@
 import sys, os
 from pathlib import Path
+from selenium.webdriver.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by  import By
 from selenium.webdriver.support.ui import Select
 import undetected_chromedriver as uc
@@ -73,7 +74,15 @@ if __name__=="__main__":
             print(f"{menu}: {selection}")
             dropdown = driver.find_element(By.ID, menu)
             select   = Select(dropdown)
-            select.select_by_visible_text(selection) ; sleep(3)
+            for option in select.options:
+                print(option.text)
+            try:
+                select.select_by_visible_text(selection) ; sleep(3)
+            except NoSuchElementException:
+                print(f"Invalid {menu} option {selection}. Possible options:")
+                print([option.text for option in select.options])
+                raise
+                
 
         papers= find_papers(driver)
         # Download all papers of all levels for this subject for this year. Organise and log.
