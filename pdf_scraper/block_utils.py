@@ -156,6 +156,14 @@ def sort_dual_column_blocks(blocks: list[dict]):
 
 
 def find_width_peaks(lines):
+    """
+    This functino will use a gaussian_kde to determine the modes
+    in the distribution of widths of lines.
+    
+    Lines in a column shouldn't have two distinct peaks in their width 
+    distribution. This would suggest that there is a group of long lines
+    combined with columnar lines.
+    """
     df = get_line_df(lines)
     df = df[df.n_words > 4]
     w  = np.array(df.w)
@@ -183,7 +191,13 @@ def in_and_out_of_pink(bbox: tuple, king_pink: Rect):
 
 def detect_bad_block(block: dict,king_pink: Rect):
     '''
-    This function
+    This function will detect if there are groups of text which are 
+    very diverse and are yet grouped together.
+    
+    If there are many base fonts, two different modes in the distribution
+    of widths of lines, and space discontinuities in the y direction, we 
+    will consider these lines to be badly blocked together, and we will separte
+    them into different blocks.
     '''
     lines=[line for line in block["lines"] if not line_is_empty(line)]
     bbox = block["bbox"]
