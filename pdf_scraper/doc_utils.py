@@ -267,6 +267,7 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
     line_scale = 1.25
     pages = np.unique(df[cat_mask].page)
 
+    # To Do: remove this and add find_eps_y with "y0" distance metric which is much more robust.
     dLs=[]
     for page in pages:
         temp_df = df[(df.page==page) & cat_mask ].copy()
