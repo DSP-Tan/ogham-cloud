@@ -338,7 +338,7 @@ def identify_vertical_captions(df,image):
     i_x0, i_y0, i_x1, i_y1 = image["bbox"]
     img_centre = (i_x0 + i_x1)/2
     within_image_frame = (df.x0 >= i_x0) & (df.x1 <= i_x1)
-    centred = df.apply( lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"]) , axis=1 )
+    centred = df.apply( lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"], 10) , axis=1 )
     uncategorised    = df.category=="uncategorised"
     above_top        = abs(i_y0 - df.y1) <= df.h*2.0
     # We will not use above_top as a condition. There are no captions above images in all pdfs I have seen and it causes non-caption 
@@ -359,6 +359,10 @@ def get_lines_in_image_clusters(df) -> list[int]:
     
     indices = get_lines_in_image_clusters(df)
     mask    = df.index.isin( indices )
+
+    This only makes sense if the clustering done includes images and texts bboxes. Otherwise it will
+    just always return no lines in the image clusters, even if the lines are in a cluster bbox which overlaps
+    contains, or is contained in an image bbox.
     """
     if np.unique(df.cluster).shape[0]<1:
         raise RuntimeError("Identify text and image clusters before searching for captions.")
@@ -378,6 +382,31 @@ def get_lines_in_image_clusters(df) -> list[int]:
         indices.extend( page_df[mask].index.to_list() ) 
 
     return indices
+
+def get_cluster_image_overlaps(df) -> list[int]:
+    """
+    """
+    if np.unique(df.cluster).shape[0]<1:
+        raise RuntimeError("Identify text and image clusters before searching for captions.")
+    if len(df[df.category=="image"])==0:
+        raise RuntimeError("Enrich dataframe with images before searching for vertical captions.")
+
+    indices = []
+    for page in range(2,9):
+        page_df = df[df.page==page]
+
+        is_image             = page_df.category=="image"
+        clusters_with_images = np.unique(page_df[is_image].cluster)
+
+        in_image_cluster     = page_df.cluster.isin(clusters_with_images)
+        uncategorised        = page_df.category=="uncategorised"
+        mask                 = uncategorised & in_image_cluster & ~is_image
+
+        indices.extend( page_df[mask].index.to_list() ) 
+
+    return  overlaps
+    
+
 
 def new_vertical_captions(df,images):
     """
