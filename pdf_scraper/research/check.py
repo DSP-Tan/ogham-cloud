@@ -23,7 +23,7 @@ def closest_line_closest_thing(image,doc_df):
     # wider than the image.
     overlap = page_df.apply(lambda row: bbox_horiz_dist((row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"])==0, axis=1 )
     overlap_df = page_df[overlap]
-    centred = page_df.apply(lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"]) , axis=1 )
+    centred = page_df.apply(lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"],10) , axis=1 )
     centred_df = page_df[overlap & centred]
     if len(centred_df) ==0:
         return None
@@ -52,7 +52,7 @@ def identify_vertical_captions(image, df):
     i_x0, i_y0, i_x1, i_y1 = image["bbox"]
     img_centre = (i_x0 + i_x1)/2
     within_image_frame = (df.x0 >= i_x0) & (df.x1 <= i_x1)
-    centred = df.apply( lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"]) , axis=1 )
+    centred = df.apply( lambda row: shared_centre( (row["x0"],row["y0"],row["x1"],row["y1"] ),image["bbox"],10) , axis=1 )
     uncategorised    = (df.section==0) & (df.caption1 ==0) & (df.instruction==0) & (df.title ==0 ) & (df.footer==0) & (df.subtitle ==0 )
     above_top        = (i_y0 - df.y1) <= df.h*4
     below_bottom     = (df.y0 -i_y1)  <= df.h*4
