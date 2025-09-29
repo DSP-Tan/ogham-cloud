@@ -9,3 +9,6 @@ setup_venv:
 
 sync_to_gcs:
 	gsutil rsync -r Exams gs://$(BUCKET_NAME)
+
+sync_from_gcs:
+	gsutil rsync -r gs://$(BUCKET_NAME) Exams 
