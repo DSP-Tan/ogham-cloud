@@ -295,6 +295,13 @@ def re_box_line(row: pd.Series) -> pd.Series:
 from scipy.stats import gaussian_kde
 from scipy.signal import find_peaks
 def count_vert_space_discont(lines):
+    """
+    This function was to be used in conjunction with the kmeans clustering
+    algorithm to split badly clustered lines output by pyMuPdfs page.get_text("dict").
+
+    The number of discontinunities would be the number of clusters -1, so the k set in the
+    KMeans algorithm.
+    """
     lines = [line for line in lines if not line_is_empty(line)]
     df = get_line_df(lines)
     dLs = np.array(df.dL[:-1])
@@ -308,6 +315,13 @@ def count_vert_space_discont(lines):
     return count
 
 def line_space_discont(lines):
+    """
+    This function will detect whether or not there is a line_space 
+    discontinuity in a group of lines.
+    
+    Such a discontinuity would indicate a new pagraph and a badly grouped
+    bunch of lines.
+    """
     lines = [line for line in lines if not line_is_empty(line)]
     df = get_line_df(lines)
 
