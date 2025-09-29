@@ -15,7 +15,12 @@ def common_font_elems(s1,s2):
         s3 += s1[i]
     return s3
 
+# To do: write tests for these font methods 
 def get_common_font(fonts):
+    """
+    This function takes a list of fonts e.g. : ['Calibri', 'Calibri,Bold', 'Calibri,Italic', 'Calibri,BoldItalic']
+    and returns what they all have in common.  In this case it will return 'Calibri'.
+    """
     common_font=fonts[0]
     for font in fonts[1:]:
         common_font =common_font_elems(common_font,font)
