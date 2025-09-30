@@ -73,8 +73,18 @@ def cluster_optimise(X, clusts, tol=0.001, verbose=False):
 
 def calc_cust_dists(clusts, X, word_mask, i_w):
     '''
-    calculates cutom distance between cluster centres clusts and observations X, with and without
-    variable specified as i_w th column of X, with rows distributed according to word_mask
+    Calculates custom distance between cluster centres, clusts, and observations X. 
+    
+    The distance is a normal euclidean distance as the default, but for rows of X marked
+    by word_mask, the distance will be calculated excluding the column at position i_w.
+
+    This custom distance calculation is for use in a KMEANs clustering of lines, where we
+    would like to use the line width as a very important feature for distinguishing between
+    columnar text lines and full page text lines. However, w becomes non-informative, and 
+    even disruptive to a good clustering when the number of words in a line is small. I.e.
+    full page text lines, if they only have 3 words in them, will have widths which resemble
+    columns. That is why this function excludes the width of the line from the calculation 
+    when the number of words is below a certain number (This is contained in word mask).
     '''
     k = clusts.shape[0]
     m, n = X.shape
