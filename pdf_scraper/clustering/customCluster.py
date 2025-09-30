@@ -58,7 +58,7 @@ if __name__=="__main__":
 def reblock_lines(lines, verbose=False):
     '''
     This function splits one line block into two line blocks by clustering together lines based on 
-    y-position, x-position, width and font. A custom clustering is used which takes into account the
+    y-position, x-position, width and font. A custom kmeans clustering is used which takes into account the
     fact that for lines with fewer than 4 words, the width is no longer an informative variable for
     clustering.  
     
