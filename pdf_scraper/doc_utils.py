@@ -7,7 +7,7 @@ import re
 from sklearn.cluster import DBSCAN
 from pdf_scraper.block_utils import clean_blocks
 from pdf_scraper.line_utils  import get_line_df, get_line_text, get_level_line_counts, get_df_bbox
-from pdf_scraper.image_utils import sort_images, assign_unique_image_number
+from pdf_scraper.image_utils import sort_and_rename_images
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
 from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips, filter_low_res_doubles
 from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions, reconstitute_split_images
@@ -115,8 +115,7 @@ def get_images(doc):
 # To Do: This function breaks if you do not sort the images before hand.
 # You should find out why this is, and put in extra testing.
 def filter_images(images):
-    images = sort_images(images)
-    images = assign_unique_image_number(images)
+    images = sort_and_rename_images(images)
     if len(images) > 100:
         images=filter_point_images(images)
     if len(images) > 100:
