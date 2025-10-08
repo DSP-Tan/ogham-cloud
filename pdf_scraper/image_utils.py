@@ -257,7 +257,7 @@ def show_all_imgs(nrows,ncols, imgs):
     plt.tight_layout()
     plt.show()
 
-def get_bboxed_page_image(doc,  page_number: int, rects: list[fitz.Rect],  color: tuple[float]=(0,0,0.0), labels: list[int] = [], ) -> Image:
+def get_bboxed_page_image(doc,  page_number: int, rects: list[fitz.Rect],  color: tuple[float]=(0,0,0.0), labels: list[int] = None ) -> Image:
     """
     This function returns an image of a document page with the passed in list of rectangles drawn on it and optionally numbered.
     It can be used to check clustering on a pdf page, or to check the visual appearance of the bbox of any object or class
@@ -277,7 +277,7 @@ def get_bboxed_page_image(doc,  page_number: int, rects: list[fitz.Rect],  color
 
     for i, rect in enumerate(rects):
         page.draw_rect(rect, color=color, width=3)
-        if len(labels) >0:
+        if np.any(labels):
             label_text = str(labels[i])
             pos = fitz.Point((rect.x0+rect.x1)/2.0, rect.y0 - 2)  # adjust -2 for spacing
             page.insert_text(pos, label_text, fontsize=8, color=(1,0,0))
