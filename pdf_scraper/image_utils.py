@@ -233,7 +233,7 @@ def get_in_image_captions(image: dict, doc_df: pd.DataFrame, indices: pd.Index) 
 
     return caption
 
-def show_image(image) -> Image.ImageFile:
+def show_image(image):
     """
     This function is for executing in a notebook to view an image based on the image block dictionary.
     """
