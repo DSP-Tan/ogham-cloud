@@ -291,7 +291,7 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
 
     return df
 
-def identify_page_clusters(df: pd.DataFrame, x_scale: float, y_scale: float, text_only=False)-> pd.DataFrame:
+def identify_all_page_clusters(df: pd.DataFrame, x_scale: float, y_scale: float, text_only=False)-> pd.DataFrame:
     """
     This function will perform a hierarchical dbscan using end-to-end line distances on 
     all pages of the document. The clusteres to which a given line or image belong will

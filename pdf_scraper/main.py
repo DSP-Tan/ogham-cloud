@@ -9,7 +9,7 @@ from pdf_scraper.doc_utils   import open_exam, get_doc_line_df, identify_section
 from pdf_scraper.doc_utils   import identify_footers, identify_instructions, identify_subtitles, identify_subsubtitles
 from pdf_scraper.doc_utils   import get_images,filter_images, assign_in_image_captions, identify_vertical_captions
 from pdf_scraper.line_utils  import get_line_df, print_line_table, get_all_lines, line_is_empty, clean_line_df
-from pdf_scraper.doc_utils   import new_vertical_captions, identify_page_clusters, enrich_doc_df_with_images
+from pdf_scraper.doc_utils   import new_vertical_captions, identify_all_page_clusters, enrich_doc_df_with_images
 
 
 paper=1
@@ -30,7 +30,7 @@ for year in range(2001,2026):
     
     df = clean_line_df(df)
     df = enrich_doc_df_with_images(df,images)
-    identify_page_clusters(df,2.0/3.0, 1.15)
+    identify_all_page_clusters(df,2.0/3.0, 1.15)
 
     identify_footers(df)
     identify_instructions(df)
