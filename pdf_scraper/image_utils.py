@@ -233,14 +233,14 @@ def get_in_image_captions(image: dict, doc_df: pd.DataFrame, indices: pd.Index) 
 
     return caption
 
-def show_image(image):
+def show_image(image) -> Image.ImageFile:
     """
     This function is for executing in a notebook to view an image based on the image block dictionary.
     """
     img_bytes = image["image"]
     img_stream = BytesIO(img_bytes)
     img = Image.open(img_stream)
-    display(img)
+    return img
 
 def show_all_imgs(nrows,ncols, imgs):
     fig, axes = plt.subplots(nrows, ncols, figsize=(18, 5))
