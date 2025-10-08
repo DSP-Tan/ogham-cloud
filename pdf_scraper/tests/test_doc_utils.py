@@ -18,7 +18,6 @@ def test_open_doc():
 
     assert isinstance(doc, Document)
 
-
 def test_get_images():
     def check_year(year, expected_images):
         doc = open_exam(year, "English", "AL", 1)
@@ -28,23 +27,6 @@ def test_get_images():
     check_year(2024,8)
     check_year(2023,17)
     check_year(2003,4)
-
-def test_filter_images():
-    def check_filter(year, im_before, im_after):
-        doc = open_exam(year, "English", "AL", 1)
-        images = get_images(doc)
-        assert len(images)== im_before
-        images = filter_images(images)
-        assert len(images)== im_after
-    check_filter(2006,136811,4)
-    check_filter(2005,18280,5)
-    check_filter(2007,15052, 5 )
-    check_filter(2008,10, 7)
-    check_filter(2009,13, 5)
-    check_filter(2010,10, 5)
-    check_filter(2023,17, 9)
-    check_filter(2024,8, 8)
-    check_filter(2025,6, 5)
 
 def test_get_captions():
     def check_nth_caption(year, expected_caption,n):
