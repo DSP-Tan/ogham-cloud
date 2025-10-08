@@ -196,13 +196,22 @@ def filter_low_res_doubles(images) -> list[dict]:
     This function will search through a list of images, find such high-low-resolution doubling, and drop
     the lower resolution copy.
     """
+    num_pages = [(im["number"],im["page"]) for im in images]
+    if len(num_pages) != len(set(num_pages)):
+        raise ValueError(
+            "Duplicate image numbers detected."
+            "Ensure images are sorted and renumbered before filtering."
+        )
+    
     images_to_drop = []
     for i in range(len(images)):
         for j in range(i+1,len(images)):
             im1, im2  = images[i], images[j]
-            if im2["bbox"]==im1["bbox"]:
-                images_to_drop.append( im1["number"] if im1["size"] > im2["size"] else im2["number"])
-    filtered_images = [im for im in images if im["number"] not in images_to_drop]
+            num_page1 = im1["number"], im1["page"]
+            num_page2 = im2["number"], im2["page"]
+            if im2["bbox"]==im1["bbox"] and im2["page"]==im1["page"]:
+                images_to_drop.append( num_page1 if im1["size"] < im2["size"] else num_page2  )
+    filtered_images = [im for im in images if (im["number"],im["page"]) not in images_to_drop]
     return filtered_images
 
 
