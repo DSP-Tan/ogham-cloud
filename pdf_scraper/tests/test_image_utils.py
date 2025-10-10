@@ -34,8 +34,8 @@ low_res_double_params = years_with_doubles + years_without_doubles
 def test_filter_low_res_double(year, expected, filter_func):
     check_image_filter(year, expected, filter_func)
 
-
-def test_filter_images():
+# To Do: Rewrite this using pytest.mark.parameterise in the same way as the image filter functions above.
+def test_preproc_images():
     def check_filter(year, im_before, im_after):
         doc = open_exam(year, "English", "AL", 1)
         images = get_images(doc)
@@ -48,6 +48,8 @@ def test_filter_images():
     check_filter(2008,10, 7)
     check_filter(2009,13, 5)
     check_filter(2010,10, 5)
+    check_filter(2011,9, 5)
+    check_filter(2013,260, 6)
     check_filter(2023,17, 9)
     check_filter(2024,8, 8)
     check_filter(2025,6, 5)
