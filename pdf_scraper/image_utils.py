@@ -22,7 +22,7 @@ def sort_images(images: list[dict]) -> list[dict]:
 def assign_unique_image_number(images: list[dict]) -> list[dict]:
     """
     The "number" key of the image dictionary provided by pymupdf does not have unique numbers.
-    Here we assign a unique number according to the order of the list.
+    Here we assign a document-unique number according to the order of the list.
     """
     for i, img in enumerate(images, start=1):
         img["number"] = i
@@ -33,8 +33,6 @@ def sort_and_rename_images(images: list[dict]) -> list[dict]:
     for i, img in enumerate(sorted_ims, start=1):
         img["number"] = i
     return images
-
-
 
 def is_point_image(img, threshold=5):
     x0, y0, x1, y1 = img["bbox"]
