@@ -10,7 +10,7 @@ from pdf_scraper.line_utils  import get_line_df, get_line_text, get_level_line_c
 from pdf_scraper.image_utils import sort_and_rename_images
 from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
 from pdf_scraper.image_utils import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips, filter_low_res_doubles
-from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions, reconstitute_split_images
+from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions, reconstitute_split_images, identify_contiguous_images
 from pdf_scraper.general_utils import bbox_horiz_dist, shared_centre, df_bbox_dist
 from pdf_scraper.clustering.cluster_utils import hdbscan, get_eps_x, get_eps_y
 
@@ -112,16 +112,18 @@ def get_images(doc):
 
     return images
 
-# To Do: This function breaks if you do not sort the images before hand.
-# You should find out why this is, and put in extra testing.
 def filter_images(images):
     images = sort_and_rename_images(images)
+
     if len(images) > 100:
         images=filter_point_images(images)
-    if len(images) > 100:
-        images = reconstitute_strips(images)
+
     images = filter_low_res_doubles(images)
-    images = reconstitute_split_images(images)
+    
+    contig_images = identify_contiguous_images(images)
+    if len(contig_images) > 0:
+        images = reconstitute_split_images(images)
+
     return images
     
 
