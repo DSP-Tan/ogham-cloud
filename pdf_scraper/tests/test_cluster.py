@@ -2,11 +2,12 @@ import pandas as pd
 import numpy  as np
 from pdf_scraper.line_utils               import line_is_empty, get_line_df
 from pdf_scraper.doc_utils                import open_exam
-from pdf_scraper.clustering.kmeans import preproc, cluster_optimise
+from pdf_scraper.clustering.kmeans        import preproc, cluster_optimise
+from pdf_scraper.clustering.customCluster import reblock_lines
     
 from sklearn.cluster import KMeans
 
-def test_standard_cluster():
+def test_standard_kmeans_cluster():
     """
     This test checks to see that the standard cluster_optimise function, which does a 
     normal Kmeans clustering for 2 clusters, agrees with the result obtained by using
@@ -47,10 +48,22 @@ def test_standard_cluster():
     assert all(cluster_pred==labels)
 
 def test_custom_kmeans_block_split():
-    pass
+    doc              = open_exam(2024)
+    page             = doc[3]
+    page_dict        = page.get_text("dict",sort=True)
+    blocks           = page_dict["blocks"]
+    block            = blocks[6]
+    lines            = block['lines']
+    lines = [line for line in lines if not line_is_empty(line)]
+
+    # In 2024, page 4, block 7, there is a case of bad blocking, where there is
+    # a subtitle blocked together with some dual column text.
+    # First 4 lines are subtitle, the rest are dual column text.
+    expected = np.array( [0 if i <4 else 1 for i in range(len(lines))])
+    assert (reblock_lines(lines) == expected).all()
 
 if __name__=="__main__":
-    test_standard_cluster()
+    test_kmeans_standard_cluster()
 
 
 
