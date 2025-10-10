@@ -67,9 +67,7 @@ def stitch_strips(image_blocks: list[dict]) -> dict:
     Return a dictionary mimicking a fitz text block.
     """
     # check if strips or contiguous:
-    strip_blocks = [strip for strip in image_blocks if is_horizontal_strip(strip)]
-    if not strip_blocks:
-        strip_blocks = identify_contiguous_images(image_blocks)[0]
+    strip_blocks = identify_contiguous_images(image_blocks)[0]
     if not strip_blocks:
         return image_blocks
     images = [Image.open(io.BytesIO(block["image"])) for block in strip_blocks]
@@ -102,7 +100,6 @@ def stitch_strips(image_blocks: list[dict]) -> dict:
     img_block['height']= stitched.height
     img_block['size']= len(img_bytes)
     img_block['image']= img_bytes
-    #'transform': ref_block.get('transform', (1.0, 0.0, 0.0, 1.0, min_x0, min_y0)),
 
     return img_block
 
