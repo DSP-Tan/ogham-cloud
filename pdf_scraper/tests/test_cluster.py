@@ -1,9 +1,8 @@
-import fitz, itertools
 import pandas as pd
 import numpy  as np
 from pdf_scraper.line_utils               import line_is_empty, get_line_df
 from pdf_scraper.doc_utils                import open_exam
-from pdf_scraper.clustering.cluster_utils import preproc, cluster_optimise
+from pdf_scraper.clustering.kmeans import preproc, cluster_optimise
     
 from sklearn.cluster import KMeans
 
@@ -46,6 +45,9 @@ def test_standard_cluster():
     print(labels)
 
     assert all(cluster_pred==labels)
+
+def test_custom_kmeans_block_split():
+    pass
 
 if __name__=="__main__":
     test_standard_cluster()
