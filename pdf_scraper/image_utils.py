@@ -116,6 +116,18 @@ def reconstitute_strips(image_blocks: dict):
     return filtered_blocks
 
 def find_contiguous_image_pairs(images, tol) -> list[list[dict]]:
+    """
+    This function will find any images that share the same x0 and x1 position,
+    and are vertically contiguous. I.e. the y1 of the image above ~ the y0 of 
+    that below.
+    
+    It will return a list of lists of pairs of images, all of which are vertically
+    touching, and horizontally aligned.
+    
+    This function deals with the fact that in many pdfs there are images which have been
+    for some reason divided in two on being extracted by pymupdf, likely an artifact of 
+    microsoft word translation to pdf.
+    """
     contiguous_image_pairs = []
     for i in range(len(images)):
         for j in range(i+1,len(images)):
@@ -134,14 +146,16 @@ def find_contiguous_image_pairs(images, tol) -> list[list[dict]]:
                 contiguous_image_pairs.append([im_a,im_b] )
     return contiguous_image_pairs
 
-def merge_contiguous_pair_lists(contiguous_image_pairs):
+def merge_contiguous_pair_lists(contiguous_image_pairs: list[list[dict]]):
     """
-    Merge contiguous image pairs (like [1,2], [2,3]) into full groups ([1,2,3]).
+    Merge contiguous image pairs (like [1,2], [2,3], [8,9], [9,10], [10,11]) into full groups [[1,2,3], [8,9,10,11]].
     Keeps groups separate by page.
     """
     merged = []
 
-    images = [img for im_pair in contiguous_image_pairs for img in im_pair] 
+    # Get all involved images in a list
+    images       = [img for im_pair in contiguous_image_pairs for img in im_pair] 
+    # Get apired image numbers.
     pair_numbers = [[a["number"],b["number"]] for a, b in contiguous_image_pairs]
     
     for pair in pair_numbers:
@@ -168,8 +182,8 @@ def merge_contiguous_pair_lists(contiguous_image_pairs):
     return contiguous_image_groups
 
 def identify_contiguous_images(images) -> list[list[dict]]:
-    contiguous_image_pairs= find_contiguous_image_pairs(images,0.01)
-    contiguous_image_groups= merge_contiguous_pair_lists(contiguous_image_pairs)
+    contiguous_image_pairs  = find_contiguous_image_pairs(images,0.01)
+    contiguous_image_groups = merge_contiguous_pair_lists(contiguous_image_pairs)
     return contiguous_image_groups
 
 def reconstitute_split_images(image_blocks: dict):
@@ -239,6 +253,10 @@ def get_in_image_captions(image: dict, doc_df: pd.DataFrame, indices: pd.Index) 
     caption = "\n".join(lines).strip()
 
     return caption
+
+#########################################################################################################
+############################### Image Visualisation Functions ###########################################
+#########################################################################################################
 
 def show_image(image):
     """
