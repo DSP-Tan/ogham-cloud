@@ -8,11 +8,6 @@ import fitz
 import matplotlib.pyplot as plt
 
 
-# To Do:
-# We need to also join just fat images which are broken into halves or 
-# thirds. So these are not narrow strips, but they will still annoyingly
-# break up the image, which we do not want.
-
 def sort_images(images: list[dict]) -> list[dict]:
     """
     Sort images by page and y0.
@@ -47,70 +42,6 @@ def filter_point_images(images):
 def filter_horizontal_strips(images):
     return [img for img in images if not is_horizontal_strip(img)]
 
-# Note because these images divided into strips were discovered before images divided into
-# larger blocks, the code to deal with each was implemented separately.
-# A refactoring which merges these could be useful.
-
-def get_stripped_images(images):
-    strips = [img for img in images if is_horizontal_strip(img)]
-    x0s = np.unique([strip["bbox"][0] for strip in strips])
-    if len(x0s) > 1:
-        raise ValueError(
-                f"Multiple stripped images detected on the page (x0s={x0s}). "
-                "Refactor required to handle multiple horizontal strips."
-            )
-    return strips
-
-def stitch_strips(image_blocks: list[dict]) -> dict:
-    """
-    Stitch a list of horizontal image strips (already sorted top-to-bottom) into a single image.
-    Return a dictionary mimicking a fitz text block.
-    """
-    # check if strips or contiguous:
-    strip_blocks = identify_contiguous_images(image_blocks)[0]
-    if not strip_blocks:
-        return image_blocks
-    images = [Image.open(io.BytesIO(block["image"])) for block in strip_blocks]
-
-    total_height = sum(img.height for img in images)
-    max_width    = max(img.width for img in images)
-
-    stitched = Image.new("RGB", (max_width, total_height), (255, 255, 255))
-    offset = 0
-    for img in images:
-        stitched.paste(img, (0, offset))
-        offset += img.height
-
-    img_byte_arr = io.BytesIO()
-    stitched.save(img_byte_arr, format='PNG')
-    img_bytes = img_byte_arr.getvalue()
-    stitched.close(); img_byte_arr.close()
-
-    min_number = min(block["number"]  for block in image_blocks)
-    min_x0     = min(block["bbox"][0] for block in image_blocks)
-    min_y0     = min(block["bbox"][1] for block in image_blocks)
-    max_x1     = max(block["bbox"][2] for block in image_blocks)
-    max_y1     = max(block["bbox"][3] for block in image_blocks)
-    bbox = (min_x0, min_y0, max_x1, max_y1)
-
-    img_block = image_blocks[0].copy()
-    img_block["number"]=min_number
-    img_block["bbox"]=bbox
-    img_block['width']= stitched.width
-    img_block['height']= stitched.height
-    img_block['size']= len(img_bytes)
-    img_block['image']= img_bytes
-
-    return img_block
-
-def reconstitute_strips(image_blocks: dict):
-    strips = get_stripped_images(image_blocks)
-    stitched = stitch_strips(strips)
-    filtered_blocks = [img for img in image_blocks if not is_horizontal_strip(img)]
-    filtered_blocks.append(stitched)
-    #filtered_blocks.sort(key=lambda x: (x["page"], x["bbox"][1]))
-    sort_and_rename_images(filtered_blocks)
-    return filtered_blocks
 
 def find_contiguous_image_pairs(images, tol) -> list[list[dict]]:
     """
@@ -182,6 +113,48 @@ def identify_contiguous_images(images) -> list[list[dict]]:
     contiguous_image_pairs  = find_contiguous_image_pairs(images,0.01)
     contiguous_image_groups = merge_contiguous_pair_lists(contiguous_image_pairs)
     return contiguous_image_groups
+
+def stitch_strips(image_blocks: list[dict]) -> dict:
+    """
+    Stitch a list of horizontal image strips (already sorted top-to-bottom), belonging to the same image 
+    into a single image. Return a dictionary mimicking a fitz text block.
+    """
+    # check if strips or contiguous:
+    strip_blocks = identify_contiguous_images(image_blocks)[0]
+    if not strip_blocks:
+        return image_blocks
+    images = [Image.open(io.BytesIO(block["image"])) for block in strip_blocks]
+
+    total_height = sum(img.height for img in images)
+    max_width    = max(img.width for img in images)
+
+    stitched = Image.new("RGB", (max_width, total_height), (255, 255, 255))
+    offset = 0
+    for img in images:
+        stitched.paste(img, (0, offset))
+        offset += img.height
+
+    img_byte_arr = io.BytesIO()
+    stitched.save(img_byte_arr, format='PNG')
+    img_bytes = img_byte_arr.getvalue()
+    stitched.close(); img_byte_arr.close()
+
+    min_number = min(block["number"]  for block in image_blocks)
+    min_x0     = min(block["bbox"][0] for block in image_blocks)
+    min_y0     = min(block["bbox"][1] for block in image_blocks)
+    max_x1     = max(block["bbox"][2] for block in image_blocks)
+    max_y1     = max(block["bbox"][3] for block in image_blocks)
+    bbox = (min_x0, min_y0, max_x1, max_y1)
+
+    img_block = image_blocks[0].copy()
+    img_block["number"]=min_number
+    img_block["bbox"]=bbox
+    img_block['width']= stitched.width
+    img_block['height']= stitched.height
+    img_block['size']= len(img_bytes)
+    img_block['image']= img_bytes
+
+    return img_block
 
 def reconstitute_split_images(image_blocks: dict):
     split_images = identify_contiguous_images(image_blocks)
