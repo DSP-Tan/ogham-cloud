@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from pdf_scraper.doc_utils   import open_exam, get_doc_line_df, get_images, filter_images
+from pdf_scraper.doc_utils   import open_exam, get_doc_line_df, get_images, preproc_images
 from pdf_scraper.image_utils import (
     get_in_image_captions, get_in_image_lines, filter_low_res_doubles,
     filter_point_images, sort_and_rename_images
@@ -40,7 +40,7 @@ def test_filter_images():
         doc = open_exam(year, "English", "AL", 1)
         images = get_images(doc)
         assert len(images)== im_before
-        images = filter_images(images)
+        images = preproc_images(images)
         assert len(images)== im_after
     check_filter(2005,18280,5)
     check_filter(2006,136811,4)

@@ -9,7 +9,7 @@ from pdf_scraper.doc_utils     import get_doc_line_df
 from pdf_scraper.line_utils    import clean_line_df
 from pdf_scraper.doc_utils     import identify_footers, identify_instructions
 from pdf_scraper.doc_utils     import identify_section_headers, identify_text_headers, identify_subtitles, identify_subsubtitles
-from pdf_scraper.doc_utils     import get_captions, filter_images, assign_in_image_captions
+from pdf_scraper.doc_utils     import get_captions, preproc_images, assign_in_image_captions
 from pdf_scraper.image_utils   import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
 from pdf_scraper.image_utils   import filter_horizontal_strips,get_stripped_images,stitch_strips, reconstitute_strips
 from pdf_scraper.line_utils    import closest_vertical_line
@@ -67,13 +67,13 @@ doc = open_exam(year,"english","al",1)
 df = get_doc_line_df(doc)
 images = get_images(doc)
 print(f"number of raw images                : {len(images):10}")
-images = filter_images(images)
+images = preproc_images(images)
 print(f"number of filtered/fixed images     : {len(images):10}")
 
 doc_width     = doc[0].rect.width
 
 images = get_images(doc)
-images = filter_images(images)
+images = preproc_images(images)
 assign_in_image_captions(df,images)
 
 df = clean_line_df(df)

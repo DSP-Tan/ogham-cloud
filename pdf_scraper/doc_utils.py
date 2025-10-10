@@ -7,10 +7,9 @@ import re
 from sklearn.cluster import DBSCAN
 from pdf_scraper.block_utils import clean_blocks
 from pdf_scraper.line_utils  import get_line_df, get_line_text, get_level_line_counts, get_df_bbox
-from pdf_scraper.image_utils import sort_and_rename_images
-from pdf_scraper.image_utils import is_point_image, is_horizontal_strip,filter_point_images, filter_horizontal_strips
-from pdf_scraper.image_utils import filter_horizontal_strips,stitch_strips, filter_low_res_doubles
-from pdf_scraper.image_utils import get_in_image_lines, get_in_image_captions, reconstitute_split_images, identify_contiguous_images
+from pdf_scraper.image_utils import (sort_and_rename_images, filter_point_images, filter_low_res_doubles, 
+                                     identify_contiguous_images, reconstitute_split_images, get_in_image_lines, 
+                                     get_in_image_captions ) 
 from pdf_scraper.general_utils import bbox_horiz_dist, shared_centre, df_bbox_dist
 from pdf_scraper.clustering.cluster_utils import hdbscan, get_eps_x, get_eps_y
 
@@ -112,7 +111,7 @@ def get_images(doc):
 
     return images
 
-def filter_images(images):
+def preproc_images(images):
     images = sort_and_rename_images(images)
 
     if len(images) > 100:

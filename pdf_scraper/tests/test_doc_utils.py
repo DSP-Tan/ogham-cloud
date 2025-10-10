@@ -1,4 +1,4 @@
-from pdf_scraper.doc_utils import open_exam, get_images, get_doc_line_df, filter_images, assign_in_image_captions
+from pdf_scraper.doc_utils import open_exam, get_images, get_doc_line_df, preproc_images, assign_in_image_captions
 from pdf_scraper.doc_utils import get_captions, identify_footers, identify_section_headers, identify_text_headers
 from pdf_scraper.doc_utils import identify_instructions, identify_subtitles, identify_subsubtitles
 from pdf_scraper.line_utils import clean_line_df
@@ -74,7 +74,7 @@ def check_category(year, subject, level, paper, cat):
     doc_width = doc[0].rect.width
 
     images = get_images(doc)
-    images = filter_images(images)
+    images = preproc_images(images)
     assign_in_image_captions(df,images)
 
     df = clean_line_df(df)
@@ -114,7 +114,7 @@ def test_identify_text_subsubtitles():
         doc_width     = doc[0].rect.width
         
         images = get_images(doc)
-        images = filter_images(images)
+        images = preproc_images(images)
         assign_in_image_captions(df,images)
     
         df = clean_line_df(df)
