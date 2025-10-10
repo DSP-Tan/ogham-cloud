@@ -6,7 +6,7 @@ from itertools import takewhile
 from itertools import dropwhile
 from pdf_scraper.block_utils import get_block_text, print_block_table, detect_bad_block
 from pdf_scraper.block_utils import preproc_blocks, get_dual_col_blocks, sort_dual_column_blocks
-from pdf_scraper.draw_utils  import get_pink_boundary, draw_rectangle_on_page, get_fill_df, get_fill_colours
+from pdf_scraper.draw_utils  import get_pink_boundary, draw_rectangles_on_page, get_fill_df, get_fill_colours
 
 
 
@@ -92,7 +92,7 @@ if __name__=="__main__":
         king_pink = get_pink_boundary(page_draws,fill_colours)
         if king_pink:
             pdf_box_out = Path(__file__).parent / out_dir / f"bound_box_page_{n_page+1}.pdf"
-            draw_rectangle_on_page(pdf, pdf_box_out ,n_page,  king_pink)
+            draw_rectangles_on_page(pdf, pdf_box_out ,n_page,  [king_pink])
 
         page_text = parse_page(page, king_pink)
 
