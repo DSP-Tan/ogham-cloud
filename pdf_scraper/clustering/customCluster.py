@@ -2,7 +2,7 @@ import fitz, itertools
 import pandas as pd
 import numpy  as np
 from pdf_scraper.line_utils    import line_is_empty, get_line_df
-from pdf_scraper.clustering.cluster_utils import calc_cust_dists, calc_inertia, custom_cluster_optimise, preproc
+from pdf_scraper.clustering.kmeans import calc_cust_dists, calc_inertia, custom_cluster_optimise, preproc
 from pathlib import Path
 
 if __name__=="__main__":
