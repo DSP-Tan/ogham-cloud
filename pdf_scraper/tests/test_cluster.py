@@ -75,6 +75,9 @@ def test_custom_kmeans_block_split():
     expected = np.array( [0,1,1])
     assert ( block_labels == expected).all()
 
+    # To see an example where reblock_lines fails, look at 2024, page 6, the block which joins
+    # the subtitle to several pargraphs of a text column.
+
 
 if __name__=="__main__":
     test_kmeans_standard_cluster()
