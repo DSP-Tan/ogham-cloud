@@ -53,14 +53,28 @@ def test_custom_kmeans_block_split():
     page_dict        = page.get_text("dict",sort=True)
     blocks           = page_dict["blocks"]
     block            = blocks[6]
-    lines            = block['lines']
-    lines = [line for line in lines if not line_is_empty(line)]
+    lines            = [line for line in block['lines'] if not line_is_empty(line)]
+    block_labels     = reblock_lines(lines)
 
     # In 2024, page 4, block 7, there is a case of bad blocking, where there is
     # a subtitle blocked together with some dual column text.
     # First 4 lines are subtitle, the rest are dual column text.
     expected = np.array( [0 if i <4 else 1 for i in range(len(lines))])
-    assert (reblock_lines(lines) == expected).all()
+    assert ( block_labels == expected).all()
+
+    page             = doc[1]
+    page_dict        = page.get_text("dict",sort=True)
+    blocks           = page_dict["blocks"]
+    block            = blocks[1]
+    lines            = [line for line in block['lines'] if not line_is_empty(line)]
+    block_labels     = reblock_lines(lines)
+
+    # In 2024, page 2, block 2, there is a case of bad blocking, where there is
+    # a title blocked together with a subtitle.
+    # First line is title, the rest are subtitle.
+    expected = np.array( [0,1,1])
+    assert ( block_labels == expected).all()
+
 
 if __name__=="__main__":
     test_kmeans_standard_cluster()
