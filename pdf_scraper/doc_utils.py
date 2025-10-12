@@ -263,11 +263,10 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
     - cluster containing first occuring category lines is the correct one.
     """
     cat_mask = (df.category == cat)
+    pages    = np.unique(df[cat_mask].page)
 
     if len(df[cat_mask]) <2:
         return df
-
-    pages = np.unique(df[cat_mask].page)
 
     for i in pages:
         page_cat_df = df[(df.page ==i) & cat_mask ].copy()
