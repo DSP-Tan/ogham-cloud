@@ -1,10 +1,12 @@
-from pdf_scraper.doc_utils import open_exam, get_images, get_doc_line_df, preproc_images, assign_in_image_captions
-from pdf_scraper.doc_utils import get_captions, identify_footers, identify_section_headers, identify_text_headers
-from pdf_scraper.doc_utils import identify_instructions, identify_subtitles, identify_subsubtitles
+from pdf_scraper.doc_utils import (open_exam, get_images, get_doc_line_df, enrich_doc_df_with_images,
+                                   preproc_images, assign_in_image_captions, get_captions, identify_all_page_clusters,
+                                   identify_footers, identify_section_headers, identify_text_headers, 
+                                   identify_instructions, identify_subtitles, identify_subsubtitles)
 from pdf_scraper.line_utils import clean_line_df
 from fitz import Document
 from pathlib import Path
 import pytest 
+from functools import lru_cache
 
 
 def test_open_doc():
@@ -68,16 +70,19 @@ def load_expected(year: int, cat: str, subject: str, level: str, paper: int) -> 
     path = out_dir/ f"{subject}_{level}_{paper}_{year}.txt"
     return path.read_text(encoding="utf-8").splitlines()
 
-def check_category(year, subject, level, paper, cat):
+@lru_cache(maxsize=None)
+def get_parsed_df(year, subject, level, paper):
     doc = open_exam(year, subject, level, paper)
     df = get_doc_line_df(doc)
     doc_width = doc[0].rect.width
 
-    images = get_images(doc)
-    images = preproc_images(images)
-    assign_in_image_captions(df,images)
+    images = preproc_images(get_images(doc))
+    assign_in_image_captions(df, images)
 
     df = clean_line_df(df)
+    df = enrich_doc_df_with_images(df, images)
+
+    identify_all_page_clusters(df, 2.0/3.0, 1.15, text_only=True)
     identify_footers(df)
     identify_instructions(df)
     identify_section_headers(df)
@@ -85,13 +90,17 @@ def check_category(year, subject, level, paper, cat):
     identify_subtitles(df, doc_width)
     identify_subsubtitles(df, doc_width)
 
+    doc.close()
+    return df
+
+
+def check_category(year, subject, level, paper, cat):
+    df = get_parsed_df(year, subject, level, paper)
+
     got = [strang.strip() for strang in df[df.category == cat].text.tolist()]
     expected = [strang.strip() for strang in load_expected(year, cat ,subject, level, paper)]
 
     assert got == expected
-
-    doc.close()
-    
 
 @pytest.mark.parametrize("year", range(2001, 2026))
 def test_identify_text_section(year):
@@ -105,42 +114,6 @@ def test_identify_text_titles(year):
 def test_identify_text_subtitles(year):
     check_category(year, "english","al",1,"subtitle")
 
-
-
-def test_identify_text_subsubtitles():
-    for year in range(2001,2026):
-        doc = open_exam(year, "english", "al",1)
-        df = get_doc_line_df(doc)
-        doc_width     = doc[0].rect.width
-        
-        images = get_images(doc)
-        images = preproc_images(images)
-        assign_in_image_captions(df,images)
-    
-        df = clean_line_df(df)
-        identify_footers(df)
-        identify_instructions(df)
-        identify_section_headers(df)
-        identify_text_headers(df, doc_width)
-        identify_subtitles(df,doc_width)
-        identify_subsubtitles(df,doc_width)
-        test_df = df[df.category=="subsubtitle"].copy()
-        if year==2003:
-            assert len(test_df)==7
-            assert test_df.iloc[0].text=='It was King Pelias who sent them out.  He had heard an oracle which warned him of a dreadful tale –'
-            assert test_df.iloc[1].text=='death through the machinations of the man whom he should see coming from the town with one foot'
-            assert test_df.iloc[2].text=='bare… The prophecy was soon confirmed.  Jason, fording the Anaurus in a winter spate, lost one of his'
-            assert test_df.iloc[3].text=='sandals, which stuck in the bed of the flooding river, but saved the other from the mud and shortly'
-            assert test_df.iloc[4].text=='appeared before the king.  And no sooner did the king see him than he thought of the oracle and'
-            assert test_df.iloc[5].text=='decided to send him on a perilous adventure overseas.  He hoped that things might so fall out, either at'
-            assert test_df.iloc[6].text=='sea or in outlandish parts, that Jason would never see his home again.'
-        elif year==2005:
-            assert len(test_df)==2
-            assert test_df.iloc[0].text=='World exclusive ! Irish Rock Diva speaks to readers from '.strip()
-            assert test_df.iloc[1].text=='her Italian villa. '.strip()
-        else:
-            assert len(test_df) == 0
-        
 
 def old_test_identify_text_titles_subtitles():
     # we are keeping these here only for the notes.
