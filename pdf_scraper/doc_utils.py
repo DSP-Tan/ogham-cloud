@@ -258,6 +258,12 @@ def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
     them from the category. 
     
     This function assumes that a dataframe with rows ordered by y0 is input.
+
+    To Do: This function should just use the pre-existing clustering of lines that
+    we will have done. 
+    
+    It should just check for the existence of the "cluster" column in the data frame and
+    then use this to separate out a given category.
     """
     cat_mask = (df.category == cat)
 
