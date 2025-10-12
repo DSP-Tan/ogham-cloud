@@ -253,47 +253,31 @@ def identify_text_headers(doc_df, doc_width):
 
 def remove_non_contiguous_lines(df: pd.DataFrame, cat: str):
     """
-    Here we identify if there are lines which are not vertically contiguous
-    to other lines in the category that has been identified, and we remove
-    them from the category. 
+    This function checks whether all lines which are assigned to a given category
+    are in the same spatial cluster. If there are two clusters present in a given category, 
+    all lines belonging to the clusters after the first one will be removed.
     
-    This function assumes that a dataframe with rows ordered by y0 is input.
-
-    To Do: This function should just use the pre-existing clustering of lines that
-    we will have done. 
-    
-    It should just check for the existence of the "cluster" column in the data frame and
-    then use this to separate out a given category.
+    assumptions:
+    - dataframe rows ordered by y0 .
+    - the category should fit in one spatial cluster. (no line breaks)
+    - cluster containing first occuring category lines is the correct one.
     """
     cat_mask = (df.category == cat)
 
     if len(df[cat_mask]) <2:
         return df
 
-    line_scale = 1.25
     pages = np.unique(df[cat_mask].page)
 
-    # To Do: remove this and add find_eps_y with "y0" distance metric which is much more robust.
-    dLs=[]
-    for page in pages:
-        temp_df = df[(df.page==page) & cat_mask ].copy()
-        diffs = temp_df.y0.diff().dropna()
-        dLs.append(diffs)
-    dL = np.median(np.concat(dLs,axis=0) )
-
     for i in pages:
-        page_df = df[(df.page ==i) & cat_mask ].copy()
-        if len(page_df) <2:
+        page_cat_df = df[(df.page ==i) & cat_mask ].copy()
+        if len(page_cat_df) <2:
             continue
-        scan = DBSCAN(eps=dL*line_scale, min_samples=3).fit(page_df[["y0"]])
-        # If there are only 2 lines in the subtitle the above dbscan will not be able to find any clusters.
-        if len(np.unique(scan.labels_)) == 1:
-            scan = DBSCAN(eps=dL*line_scale, min_samples=2).fit(page_df[["y0"]])
-        if len(np.unique(scan.labels_)) == 1:
-            continue
-        not_contig_group = (scan.labels_ != scan.labels_[0])
-        page_df.loc[not_contig_group, "category"] = "uncategorised"
-        df.loc[page_df.index, "category"] = page_df.category
+        
+        clusters = np.unique(page_cat_df.cluster)
+        not_contig_group = (page_cat_df.cluster!= clusters[0])
+        page_cat_df.loc[not_contig_group, "category"] = "uncategorised"
+        df.loc[page_cat_df.index, "category"] = page_cat_df.category
 
     return df
 
