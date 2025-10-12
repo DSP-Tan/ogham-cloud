@@ -30,7 +30,7 @@ for year in range(2001,2026):
     
     df = clean_line_df(df)
     df = enrich_doc_df_with_images(df,images)
-    identify_all_page_clusters(df,2.0/3.0, 1.15)
+    identify_all_page_clusters(df,2.0/3.0, 1.15, True)
 
     identify_footers(df)
     identify_instructions(df)
