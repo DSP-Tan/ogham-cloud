@@ -7,6 +7,7 @@ from fitz import Document
 from pathlib import Path
 import pytest 
 from functools import lru_cache
+import pandas as pd
 
 
 def test_open_doc():
@@ -113,6 +114,24 @@ def test_identify_text_titles(year):
 @pytest.mark.parametrize("year", range(2001, 2026))
 def test_identify_text_subtitles(year):
     check_category(year, "english","al",1,"subtitle")
+
+
+pages_to_test = [(2001,2), (2001,3), (2001,4), (2001,6), (2011, 6), (2024,4), (2025, 6)]
+@pytest.mark.parametrize("year, page", pages_to_test)
+def test_identify_page_clusters(year, page):
+    subject = "english"
+    level = "al"
+    paper = 1
+
+    df = get_parsed_df(year, subject, level, paper)
+    test_df = df.loc[df.page==page, ["text","cluster"]].sort_values(by="cluster")
+
+    dir     = Path(__file__).parent.resolve() / Path(f"resources/expected_clusters")
+    file    = dir / f"{subject}_{level}_{paper}_{year}_{page}.csv"
+    ref_df  = pd.read_csv(file, index_col=0)
+
+    assert (test_df == ref_df).all().all()
+
 
 
 def old_test_identify_text_titles_subtitles():
