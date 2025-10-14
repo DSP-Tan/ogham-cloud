@@ -5,13 +5,13 @@ import fitz
 from fitz import Rect
 import sys, re
 
-from pdf_scraper.block_utils import identify_dual_column, get_block_text, sort_dual_column_blocks
-from pdf_scraper.doc_utils   import open_exam, get_doc_line_df, identify_section_headers, identify_text_headers
-from pdf_scraper.doc_utils   import identify_footers, identify_instructions, identify_subtitles, identify_subsubtitles
-from pdf_scraper.doc_utils   import get_images,preproc_images, assign_in_image_captions, identify_vertical_captions
-from pdf_scraper.draw_utils  import get_pink_boundary, get_fill_df, in_the_pink
-from pdf_scraper.line_utils  import get_line_df, print_line_table, get_all_lines, line_is_empty, clean_line_df
-from pdf_scraper.doc_utils   import new_vertical_captions, identify_all_page_clusters, enrich_doc_df_with_images
+from pdf_scraper.doc_utils   import (open_exam, get_doc_line_df, identify_section_headers, 
+                                     identify_text_headers,identify_footers, identify_instructions, 
+                                     identify_subtitles, identify_subsubtitles,get_images,preproc_images, 
+                                     assign_in_image_captions, identify_vertical_captions,
+                                     identify_all_page_clusters, enrich_doc_df_with_images)
+
+from pdf_scraper.line_utils  import clean_line_df
 
 
 paper=1
@@ -20,7 +20,7 @@ subject="english"
 
 
 test_categories = ["dual_col", "caption1","caption2", "instruction", "footer", "section","title","subtitle","subsubtitle"]
-cat = "temp"
+cat = "caption2"
 write = False
 
 out_dir = Path(__file__).parent.resolve() / Path(f"resources/expected_{cat}s")
@@ -48,7 +48,9 @@ for year in range(2001,2026):
     identify_subsubtitles(df, doc_width)
 
 
-    new_vertical_captions(df, images)
+    for img in images:
+        identify_vertical_captions(df, img)
+    #new_vertical_captions(df, images)
 
     
     test_df = df[df.category == cat]

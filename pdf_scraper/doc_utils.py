@@ -324,7 +324,7 @@ def identify_vertical_captions(df,image):
     This function will identify any captions to image contained in df. 
     It will look for captions vertically above or below the image.
     """
-    if np.unique(df.clusters).shape[0]<1:
+    if np.unique(df.cluster).shape[0]<1:
         raise RuntimeError("Identify text and image clusters before searching for captions.")
     i_x0, i_y0, i_x1, i_y1 = image["bbox"]
     img_centre = (i_x0 + i_x1)/2
