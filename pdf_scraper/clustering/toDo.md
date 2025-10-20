@@ -1,17 +1,7 @@
-1. Check clustering against standard Kmeans using the normal distance calculation.                        - Done
-
+# Kmeans
 2. Check customCluster for the case where word mask is the whole array against KMeans. 
    - refactor normal distance calculations as special case of custom case. 
    - Give more meaningful names to all masks. It is confusing at the moment. 
-
-3. Write function to detect possible mixed blocks so you can split them then.
-   - see notebook                                                                                          - Done
-
-
-Organisation:
-
-A directory just for clustering. All the primary clustering functions in cluster.py, the side utilities
-like printing etc, will go into cluster_utils.py.                                                           - Done
 
 
 # Other clustering ideas
@@ -66,4 +56,13 @@ and horizontally grouped lines, and to separate columns too.
 - Image bboxes must be added to the dataframe
 - Distances must be correctly calculated between the ends of boxes. You cannot just use x0 or y0.
 
-- - Start on just one page. Maybe 2019 page 6, with the tricky caption.
+# eps_y and eps_x determination 
+
+At the moment eps_y and eps_x are determined using the functions get_eps_x and get_eps_y in cluster_utils.
+These do a good job, but have some short comings in cases where there are not many lines on the page.
+See for example 2001 page 8.
+
+Ideally, eps_x and eps_y could be determined from the size of a carriage return for a given font. This would require
+a custom dbscan.
+
+Alternative modes could be a document wide determination of each.

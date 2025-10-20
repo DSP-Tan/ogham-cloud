@@ -81,7 +81,8 @@ def nn_line_distance(df, row):
     """
 
     same_page  = (row.page == df.page)
-    middle     = (df[same_page].x0.min() + df[same_page].x1.max())/2
+    # This assumes there is text accross the whole page, sometimes there is not.
+    middle     = (df[same_page].x0.min() + df[same_page].x1.max())/2  
     same_side  = (row.x0 < middle ) == (df.x0 < middle) 
     below      = (df.y0 > row.y0)
     not_image  = (df.category != "image")
