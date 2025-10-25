@@ -74,6 +74,9 @@ for year in range(2001,2026):
 
     if write:
         out_file = out_dir / f"{subject}_{level}_{paper}_{year}.txt"
+        if out_file.exists():
+            print(f"{out_file} already exists.")
+            continue
         with out_file.open("w", encoding="utf-8") as f:
             for text in test_df.text.tolist():
                 f.write(text + "\n")  # preserve \xa0 and all Unicode chars
