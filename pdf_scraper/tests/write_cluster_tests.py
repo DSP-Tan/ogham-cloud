@@ -17,6 +17,12 @@ subject="english"
 year=2001
 page = 4
 
+# Note: This is not really a good testing method as it saves the entire dataframe. In this way if any
+# column or row which has nothing to do with the clustering is changed, it will cause the tests to change
+# as they are against a frozen entire dataframe.
+
+# A simple improvement is to write only the relevant columns.
+
 # (2001,6) This is not really a good clustering. The dual cols are split as we would like, but the title and the subtitle
 # are grouped together because the eps_y obtained from this page is too small. A solution is to determine a font-based eps_y,
 # or a document wide eps_y.

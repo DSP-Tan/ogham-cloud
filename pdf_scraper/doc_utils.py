@@ -79,7 +79,7 @@ def enrich_doc_df_with_images(df, images):
         img_dict[coord]   = [ img["bbox"][i] for img in images ]
     img_dict["page"]  = [ img["page"]   for img in images]
     img_dict["category"] = ["image"]*len(images)
-    img_dict["text"] = ["<image>"]*len(images)
+    img_dict["text"] = [str(img["number"]) for img in images ] #["<image>"]*len(images)
     img_df = pd.DataFrame(img_dict)    
     rich_df = pd.concat([df, img_df],ignore_index=True).sort_values(by=["page","y0"],ignore_index=True)
     
